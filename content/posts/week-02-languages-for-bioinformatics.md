@@ -212,7 +212,7 @@ flowchart TD
   repeat --> workflow[Use Nextflow or Snakemake]
 ```
 
-The reusable version of this map is in the Week 2 resources folder: [`content/resources/week-02/language-decision-map.md`](https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/blob/main/content/resources/week-02/language-decision-map.md).
+The reusable version of this map is in the Week 2 resources folder: [`content/resources/week-02/language-decision-map.md`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-02/language-decision-map.md).
 
 ## Common Mistakes
 
@@ -231,12 +231,12 @@ Use the notebooks as tiny confidence labs. Each one has a bioinformatics-flavore
 
 | Week | Goal | Interactive tutorial | Tiny project |
 |---|---|---|---|
-| 1 | Bash | [Inspect a tiny bioinformatics project](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/01_bash_file_inspection.ipynb) | Count rows, inspect a FASTA file, summarize sample names |
-| 2 | Python | [Clean sample metadata](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/main/content/resources/week-02/notebooks/02_python_metadata_cleanup.ipynb) | Read a metadata table, clean columns, make one plot |
-| 3 | R | [Plot a tiny expression matrix](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/03_r_expression_plot.ipynb) | Read a count matrix, join metadata, make a basic expression plot |
-| 4 | SQL | [Audit sample metadata with SQL](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/main/content/resources/week-02/notebooks/04_sql_metadata_checks.ipynb) | Create small tables, check sample balance, join gene annotations |
+| 1 | Bash | [Inspect a tiny bioinformatics project](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/01_bash_file_inspection.ipynb) | Count rows, inspect a FASTA file, summarize sample names |
+| 2 | Python | [Clean sample metadata](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-02/notebooks/02_python_metadata_cleanup.ipynb) | Read a metadata table, clean columns, make one plot |
+| 3 | R | [Plot a tiny expression matrix](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/03_r_expression_plot.ipynb) | Read a count matrix, join metadata, make a basic expression plot |
+| 4 | SQL | [Audit sample metadata with SQL](https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-02/notebooks/04_sql_metadata_checks.ipynb) | Create small tables, check sample balance, join gene annotations |
 
-The Bash, Python, and SQL notebooks run in a Python notebook environment. The Bash notebook uses `%%bash` cells, so it still teaches terminal commands interactively. The R notebook uses an R kernel; if Colab does not start the R runtime cleanly for you, open the same notebook from the [Week 2 GitHub resources folder](https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/tree/main/content/resources/week-02/notebooks) in Posit Cloud or in your local JupyterLab setup from Week 1.
+The Bash, Python, and SQL notebooks run in a Python notebook environment. The Bash notebook uses `%%bash` cells, so it still teaches terminal commands interactively. The R notebook uses an R kernel; if Colab does not start the R runtime cleanly for you, open the same notebook from the [Week 2 GitHub resources folder](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-02/notebooks) in Posit Cloud or in your local JupyterLab setup from Week 1.
 
 If you want browser-only practice before running local notebooks, use these:
 

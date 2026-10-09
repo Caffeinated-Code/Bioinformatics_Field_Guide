@@ -2,7 +2,7 @@
 
 **Bioinformatics Field Guide** is a practical, reproducible learning resource for bioinformatics. It is built for readers who want to move from setup and command-line confidence into real sequencing files, public data, and analysis decisions without getting lost in scattered tutorials.
 
-[Read the published site](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/) · [Open the content folder](content/) · [Use the resources](content/resources/)
+[Read the published site](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/) · [Open the content folder](content/) · [Use the resources](content/resources/)
 
 ## Why This Exists
 
@@ -20,13 +20,13 @@ This project turns those rough edges into guided, testable lessons:
 
 | No. | Guide | What readers practice | Resources |
 |---:|---|---|---|
-| 01 | [Set Up Your Laptop For Bioinformatics](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-01-laptop-setup-for-bioinformatics.html) | Conda, Docker, JupyterLab, VS Code, Ollama, BioChatter | [Week 1 resources](content/resources/week-01/) |
-| 02 | [What Programming Languages Should A Bioinformatician Know?](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-02-languages-for-bioinformatics.html) | Bash, Python, R, SQL, notebooks, AI-assisted learning | [Week 2 resources](content/resources/week-02/) |
-| 03 | [The Bioinformatics File Types You Must Know](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-03-bioinformatics-file-types.html) | FASTQ, SAM/BAM/CRAM, VCF, GTF/GFF, BED, bedGraph, bigWig, metadata | [Week 3 resources](content/resources/week-03/) |
-| 04 | [Bulk RNA-seq Field Guide: From Reads To Rigorous Differential Expression](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-04-bulk-rnaseq-differential-expression.html) | nf-core/rnaseq, raw counts, TPM/FPKM, DESeq2 design formulas, replicates, assumptions, outliers | [Week 4 resources](content/resources/week-04/) |
-| 05 | [Nextflow For Bioinformatics: The Big Picture Before You Run nf-core/rnaseq](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-05-nextflow-nfcore-rnaseq.html) | workflow-engine concepts, local/HPC/AWS execution, caching, parallelization, nf-core, nf-core/rnaseq test run | [Week 5 resources](content/resources/week-05/) |
-| 06 | [Build A Custom Nextflow Pipeline For Oxford Nanopore Data](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-06-build-custom-nextflow-ont-pipeline.html) | DSL2 structure, modules, profiles, ONT FASTQ alignment, custom pipeline skeleton, SQANTI3 annotation, nf-core/nanoseq comparison | [Week 6 resources](content/resources/week-06/) |
-| 07 | [Nextflow, Snakemake, WDL, Or CWL? Choosing Workflow Tools And Running Nextflow On AWS](https://caffeinated-code.github.io/Bioinformatics-Field-Guide/week-07-rnaseq-in-seven-minutes.html) | workflow-manager comparison, Nextflow AWS Batch mental model, cost-aware cloud practices, tiny AWS demo config | [Week 7 resources](content/resources/week-07/) |
+| 01 | [Set Up Your Laptop For Bioinformatics](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-01-laptop-setup-for-bioinformatics.html) | Conda, Docker, JupyterLab, VS Code, Ollama, BioChatter | [Week 1 resources](content/resources/week-01/) |
+| 02 | [What Programming Languages Should A Bioinformatician Know?](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-02-languages-for-bioinformatics.html) | Bash, Python, R, SQL, notebooks, AI-assisted learning | [Week 2 resources](content/resources/week-02/) |
+| 03 | [The Bioinformatics File Types You Must Know](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-03-bioinformatics-file-types.html) | FASTQ, SAM/BAM/CRAM, VCF, GTF/GFF, BED, bedGraph, bigWig, metadata | [Week 3 resources](content/resources/week-03/) |
+| 04 | [Bulk RNA-seq Field Guide: From Reads To Rigorous Differential Expression](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-04-bulk-rnaseq-differential-expression.html) | nf-core/rnaseq, raw counts, TPM/FPKM, DESeq2 design formulas, replicates, assumptions, outliers | [Week 4 resources](content/resources/week-04/) |
+| 05 | [Nextflow For Bioinformatics: The Big Picture Before You Run nf-core/rnaseq](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-05-nextflow-nfcore-rnaseq.html) | workflow-engine concepts, local/HPC/AWS execution, caching, parallelization, nf-core, nf-core/rnaseq test run | [Week 5 resources](content/resources/week-05/) |
+| 06 | [Build A Custom Nextflow Pipeline For Oxford Nanopore Data](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-06-build-custom-nextflow-ont-pipeline.html) | DSL2 structure, modules, profiles, ONT FASTQ alignment, custom pipeline skeleton, SQANTI3 annotation, nf-core/nanoseq comparison | [Week 6 resources](content/resources/week-06/) |
+| 07 | [Nextflow, Snakemake, WDL, Or CWL? Choosing Workflow Tools And Running Nextflow On AWS](https://caffeinated-code.github.io/Bioinformatics_Field_Guide/week-07-rnaseq-in-seven-minutes.html) | workflow-manager comparison, Nextflow AWS Batch mental model, cost-aware cloud practices, tiny AWS demo config | [Week 7 resources](content/resources/week-07/) |
 
 Only published guides are listed here. Draft and future articles are intentionally hidden from this landing page until they are ready.
 

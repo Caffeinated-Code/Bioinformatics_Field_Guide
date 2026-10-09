@@ -15,10 +15,10 @@ These files support the Week 2 guide: "What Programming Languages Should a Bioin
 
 | Tutorial | Browser link |
 |---|---|
-| Bash | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/01_bash_file_inspection.ipynb |
-| Python | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/main/content/resources/week-02/notebooks/02_python_metadata_cleanup.ipynb |
-| R | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/03_r_expression_plot.ipynb |
-| SQL | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics-Field-Guide/blob/main/content/resources/week-02/notebooks/04_sql_metadata_checks.ipynb |
+| Bash | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/01_bash_file_inspection.ipynb |
+| Python | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-02/notebooks/02_python_metadata_cleanup.ipynb |
+| R | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/4c540efc6fdf3595849f4e84788099186f724dc4/content/resources/week-02/notebooks/03_r_expression_plot.ipynb |
+| SQL | https://colab.research.google.com/github/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-02/notebooks/04_sql_metadata_checks.ipynb |
 
 The R notebook uses an R kernel. If a hosted notebook service does not start the R runtime cleanly, open it in Posit Cloud or in the local JupyterLab environment from Week 1.
 

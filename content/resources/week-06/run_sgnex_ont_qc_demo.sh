@@ -30,7 +30,7 @@ import urllib.request
 url, out_fastq, reads = sys.argv[1], sys.argv[2], int(sys.argv[3])
 max_lines = reads * 4
 
-request = urllib.request.Request(url, headers={"User-Agent": "Bioinformatics-Field-Guide-Week6"})
+request = urllib.request.Request(url, headers={"User-Agent": "Bioinformatics_Field_Guide-Week6"})
 with urllib.request.urlopen(request) as response:
     with gzip.GzipFile(fileobj=response) as source:
         with gzip.open(out_fastq, "wt") as out:

@@ -138,15 +138,15 @@ function setupSharing() {
     x.href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`;
   }
   if (edit && sourcePath) {
-    edit.href = `https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/edit/main/${sourcePath}`;
+    edit.href = `https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/edit/main/${sourcePath}`;
   } else if (edit) {
-    edit.href = "https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide";
+    edit.href = "https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide";
   }
   if (discussQuestion) {
-    discussQuestion.href = `https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/discussions/new?category=q-a&title=${encodedTitle}`;
+    discussQuestion.href = `https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/discussions/new?category=q-a&title=${encodedTitle}`;
   }
   if (discussGeneral) {
-    discussGeneral.href = "https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/discussions";
+    discussGeneral.href = "https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/discussions";
   }
 
   nativeButton?.addEventListener("click", async () => {

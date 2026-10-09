@@ -61,7 +61,7 @@ The files change because the question changes:
 What was sequenced? -> Where did it align? -> What feature was counted? -> What changed?
 ```
 
-The reusable file atlas, tiny data, environment file, and tutorial script are here: [`content/resources/week-03`](https://github.com/Caffeinated-Code/Bioinformatics-Field-Guide/tree/main/content/resources/week-03).
+The reusable file atlas, tiny data, environment file, and tutorial script are here: [`content/resources/week-03`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-03).
 
 ## The Tool Belt
 
