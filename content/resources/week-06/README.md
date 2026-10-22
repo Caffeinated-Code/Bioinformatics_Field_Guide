@@ -24,6 +24,20 @@ bash content/resources/week-06/prepare_toy_test.sh
 
 This downloads the public simulated ONT dataset distributed with IsoQuant v4.0.0 and checks every gzip file.
 
+## Fast CI Test
+
+Every process includes a lightweight `stub` that creates the same output names as the real tool. The stub test checks the complete five-process dataflow without downloading containers or running bioinformatics software.
+
+```bash
+# Run from this directory after installing Nextflow, Java 17, and nf-test 0.9.3.
+mkdir -p .test-results
+nf-test test tests/pipeline.nf.test \
+  --ci \
+  --junitxml .test-results/nf-test.xml
+```
+
+A passing stub test proves that channels, metadata, process dependencies, and output contracts still connect. It does not validate alignments or transcript discovery. Use the public IsoQuant dataset below for real integration and scientific checks.
+
 ## Run
 
 ```bash

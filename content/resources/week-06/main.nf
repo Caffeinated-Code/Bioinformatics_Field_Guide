@@ -33,16 +33,25 @@ workflow {
     error "Provide --input, --reference, and --annotation. FASTA and GTF must use the same genome build."
   }
 
+  def samplesheet = file(params.input, checkIfExists: true)
+  def samplesheet_dir = samplesheet.parent
+
   Channel
-    .fromPath(params.input, checkIfExists: true)
+    .fromPath(samplesheet)
     .splitCsv(header: true)
     .map { row ->
       if (!(row.protocol in ['directRNA', 'directcDNA', 'pcr-cDNA'])) {
         error "Unsupported protocol '${row.protocol}' for sample '${row.sample}'."
       }
+
+      def fastq = file(row.fastq)
+      if (!fastq.exists()) {
+        fastq = samplesheet_dir.resolve(row.fastq)
+      }
+
       tuple(
         [ id: row.sample, protocol: row.protocol, condition: row.condition ],
-        file(row.fastq, checkIfExists: true)
+        file(fastq, checkIfExists: true)
       )
     }
     .set { ch_reads }

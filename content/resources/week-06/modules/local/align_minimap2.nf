@@ -22,4 +22,10 @@ process ALIGN_MINIMAP2 {
     | samtools sort -@ ${task.cpus} -o ${meta.id}.sorted.bam -
   samtools index -@ ${task.cpus} ${meta.id}.sorted.bam
   """
+
+  stub:
+  """
+  printf 'stub alignment for ${meta.id}\n' > ${meta.id}.sorted.bam
+  printf 'stub index for ${meta.id}\n' > ${meta.id}.sorted.bam.bai
+  """
 }

@@ -40,4 +40,10 @@ process SQANTI3_ANNOTATION {
     --chunks ${task.cpus}
   cp -R output "\${OLDPWD}/${meta.id}.sqanti3"
   """
+
+  stub:
+  """
+  mkdir -p ${meta.id}.sqanti3
+  printf 'isoform\tstructural_category\nTX1\tfull-splice_match\n' > ${meta.id}.sqanti3/${meta.id}_classification.txt
+  """
 }

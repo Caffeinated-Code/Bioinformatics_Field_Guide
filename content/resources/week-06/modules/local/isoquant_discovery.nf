@@ -42,4 +42,11 @@ process ISOQUANT_DISCOVERY {
   # Give the GTF a stable name for the next Nextflow process.
   cp "\${model_gtf}" ${meta.id}.transcript_models.gtf
   """
+
+  stub:
+  """
+  mkdir -p ${meta.id}.isoquant/${meta.id}
+  printf 'chrTest\tIsoQuant\ttranscript\t1\t40\t.\t+\t.\tgene_id "GENE1"; transcript_id "TX1";\n' > ${meta.id}.transcript_models.gtf
+  cp ${meta.id}.transcript_models.gtf ${meta.id}.isoquant/${meta.id}/${meta.id}.transcript_models.gtf
+  """
 }

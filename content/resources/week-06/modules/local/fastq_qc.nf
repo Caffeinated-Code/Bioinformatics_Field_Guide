@@ -20,4 +20,10 @@ process FASTQ_QC {
     --outdir ${meta.id}_nanoplot \
     --prefix ${meta.id}_
   """
+
+  stub:
+  """
+  mkdir -p ${meta.id}_nanoplot
+  printf 'sample\treads\n${meta.id}\t3\n' > ${meta.id}_nanoplot/NanoStats.txt
+  """
 }

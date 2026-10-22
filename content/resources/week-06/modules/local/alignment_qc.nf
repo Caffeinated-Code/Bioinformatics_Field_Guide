@@ -18,4 +18,10 @@ process ALIGNMENT_QC {
   samtools flagstat ${bam} > ${meta.id}.flagstat.txt
   samtools idxstats ${bam} > ${meta.id}.idxstats.txt
   """
+
+  stub:
+  """
+  printf '3 + 0 in total (QC-passed reads + QC-failed reads)\n3 + 0 mapped (100.00%% : N/A)\n' > ${meta.id}.flagstat.txt
+  printf 'chrTest\t80\t3\t0\n' > ${meta.id}.idxstats.txt
+  """
 }

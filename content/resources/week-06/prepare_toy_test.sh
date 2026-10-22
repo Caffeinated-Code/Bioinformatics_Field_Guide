@@ -9,7 +9,7 @@ for name in chr9.4M.ont.sim.fq.gz chr9.4M.fa.gz chr9.4M.gtf.gz; do
 done
 cat > "${data_dir}/samplesheet.csv" <<EOF
 sample,fastq,protocol,condition
-ISOQUANT_TOY,${data_dir}/chr9.4M.ont.sim.fq.gz,directcDNA,toy
+ISOQUANT_TOY,chr9.4M.ont.sim.fq.gz,directcDNA,toy
 EOF
 printf 'Prepared public IsoQuant ONT test data in %s\n' "${data_dir}"
 printf 'FASTQ reads: %s\n' "$(gzip -dc "${data_dir}/chr9.4M.ont.sim.fq.gz" | awk 'END {print NR/4}')"

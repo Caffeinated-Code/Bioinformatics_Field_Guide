@@ -1,0 +1,25 @@
+nextflow_pipeline {
+
+    name "Week 6 ONT pipeline wiring"
+    script "main.nf"
+
+    test("runs all five stages with lightweight stubs") {
+
+        options "-stub-run"
+
+        when {
+            params {
+                input = "$baseDir/tests/data/samplesheet.csv"
+                reference = "$baseDir/tests/data/tiny.fa"
+                annotation = "$baseDir/tests/data/tiny.gtf"
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            assert workflow.success
+            assert workflow.trace.tasks().size() == 5
+            assert workflow.trace.failed().size() == 0
+        }
+    }
+}

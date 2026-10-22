@@ -1,13 +1,14 @@
 .DS_Store
 .nextflow*
-work/
-results/
-output/
-data/
-tmp/
+/work/
+/results/
+/output/
+/data/
+/tmp/
 
 # Local test and report output
 build/
 **/.nf-test/
+**/.nf-test.log
 **/.test-results/
 **/.test-work/
