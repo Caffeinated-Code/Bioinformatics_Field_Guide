@@ -29,12 +29,14 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Nextflow
-        uses: nf-core/setup-nextflow@v2
+        uses: nf-core/setup-nextflow@v3
         with:
           version: '26.04.2'
+          java-version: '17'
+          java-distribution: 'temurin'
 
       - name: Install nf-test
         uses: nf-core/setup-nf-test@v1
@@ -46,7 +48,7 @@ jobs:
 
       - name: Keep test reports and sandbox outputs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: week-07-ci-results
           path: |

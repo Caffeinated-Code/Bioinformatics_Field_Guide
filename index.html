@@ -23,7 +23,7 @@
       href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/site.css?v=20260713-map" />
+    <link rel="stylesheet" href="assets/site.css?v=20261022-ci-guide" />
   </head>
   <body>
     <header class="site-header" id="site-header">
@@ -157,13 +157,13 @@
             </a>
             <a class="series-step series-step--active" href="week-06-build-custom-nextflow-ont-pipeline.html">
               <span>06</span>
-              <strong>Build A Custom ONT Pipeline</strong>
-              <em>DSL2 modules, profiles, minimap2, BAM QC, SQANTI3 annotation, nf-core/nanoseq comparison</em>
+              <strong>Build A Reproducible ONT Isoform Pipeline</strong>
+              <em>ONT QC, streamed alignment, IsoQuant discovery, SQANTI3 classification, public toy test</em>
             </a>
             <a class="series-step series-step--active" href="week-07-rnaseq-in-seven-minutes.html">
               <span>07</span>
-              <strong>Choose Workflow Tools And Run Nextflow On AWS</strong>
-              <em>Nextflow, Snakemake, WDL, CWL, AWS Batch, S3 work directories, cost-aware test runs</em>
+              <strong>Test Pipelines Scientists Can Trust</strong>
+              <em>nf-test, stubs, scientific assertions, GitHub Actions, Jenkins, release evidence</em>
             </a>
           </div>
         </div>
@@ -213,13 +213,18 @@
             </article>
             <article class="resource-card">
               <h3>Week 6 ONT pipeline</h3>
-              <p>Custom Nextflow DSL2 skeleton with modules, profiles, samplesheet, params, ONT QC, and SQANTI3 handoff.</p>
+              <p>Complete Nextflow workflow with ONT QC, streamed alignment, IsoQuant transcript discovery, SQANTI3 classification, and a public test dataset.</p>
               <a href="content/resources/week-06/README.md">open resources</a>
             </article>
             <article class="resource-card">
-              <h3>Week 7 workflow tools</h3>
-              <p>Workflow manager decision matrix, AWS Batch starter config, tiny Nextflow demo, and cloud cost checklist.</p>
+              <h3>Week 7 pipeline CI</h3>
+              <p>Tested nf-test suite, three-read FASTQ sandbox, GitHub Actions workflow, Jenkinsfile, and shared CI script.</p>
               <a href="content/resources/week-07/README.md">open resources</a>
+            </article>
+            <article class="resource-card">
+              <h3>Cloud execution companion</h3>
+              <p>Workflow-manager comparison, AWS Batch starter stack, tiny cloud run, troubleshooting map, and cost checklist.</p>
+              <a href="nextflow-workflow-tools-aws-companion.html">open companion</a>
             </article>
           </div>
         </div>

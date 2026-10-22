@@ -1,735 +1,433 @@
 ---
-title: "Build A Custom Nextflow Pipeline For Oxford Nanopore Data"
-subtitle: "A practical guide to DSL2 structure, modules, profiles, parameters, long-read QC, SQANTI3 annotation, and how custom ONT pipelines compare with nf-core/nanoseq"
-week: 6
-audience: ["beginner", "practitioner", "researcher"]
-reading_time: "Deep dive + builder lab"
-asset: "Custom ONT Nextflow pipeline skeleton with modules, config profiles, samplesheet, and parameter file"
+title: "Build A Reproducible ONT Isoform Pipeline With Nextflow"
+subtitle: "A beginner-friendly tour of DSL2 files, processes, channels, resources, and one working long-read workflow"
+week: "6"
+reading_time: "7-minute guide + reproducible lab"
+asset: "Complete Nextflow pipeline using NanoPlot, minimap2, samtools, IsoQuant, and SQANTI3"
 ---
 
-# Build A Custom Nextflow Pipeline For Oxford Nanopore Data
+# Build A Reproducible ONT Isoform Pipeline With Nextflow
 
-**Takeaway:** Nextflow becomes much less mysterious once you build a small pipeline yourself. In this guide, you will build the skeleton of a custom Oxford Nanopore long-read pipeline and understand when to use it instead of an existing community pipeline.
+**Takeaway:** A custom Nextflow pipeline is a set of small tool commands connected by a readable workflow. Once you know which file controls the route, the command, the software, and the compute, it becomes much easier to build one safely.
 
-If Week 5 was the high-level map, this is the workshop bench.
+[Week 5](week-05-nextflow-nfcore-rnaseq.html) showed how to run the community-maintained `nf-core/rnaseq` pipeline. This week, we open the hood and build a focused pipeline for Oxford Nanopore Technologies (ONT) isoform discovery.
 
-## Pipeline Goal
+[Open the complete, tested Week 6 project on GitHub](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-06).
 
-We will build a small custom pipeline for Oxford Nanopore long-read FASTQ data:
+## From Pipeline User To Pipeline Builder
 
-```text
-ONT FASTQ
-  -> read QC
-  -> minimap2 long-read alignment
-  -> sorted and indexed BAM
-  -> alignment QC
-  -> isoform-collapse handoff
-  -> SQANTI3 annotation and curation
-```
-
-This is not trying to beat `nf-core/nanoseq`. It is a learning pipeline that shows how pieces fit together. After you understand the pieces, you can decide whether to use an existing pipeline, customize one, or build a specialized method for a specific research problem.
-
-## Build Or Reuse?
-
-Build custom when:
-
-- your assay is unusual
-- your target region is small but extremely deep
-- you need a method that existing pipelines do not provide
-- you are benchmarking algorithms
-- you need a clean prototype for a future open-source tool
-- you want to understand exactly what each step does
-
-Use an existing pipeline when:
-
-- the task is standard
-- a community pipeline already covers your assay
-- you need production reliability quickly
-- you need tested containers and documentation
-- collaborators expect standard outputs
-
-For Oxford Nanopore data, always check `nf-core/nanoseq` before building from scratch.
-
-## ONT Long-Read Strategy
-
-Nanopore reads differ from short-read RNA-seq in important ways:
-
-| Issue | Why it matters |
-|---|---|
-| longer reads | a single read may span multiple exons or a full transcript |
-| higher raw error rate | small indels/substitutions should not become fake isoforms |
-| variable read completeness | truncated reads can mimic shorter transcripts |
-| direct RNA vs cDNA differences | strandedness, adapters, polyA behavior, and alignment options differ |
-| isoform complexity | splice junctions and transcript ends matter more than simple gene counts |
-
-For transcript isoform work, do not think only:
-
-```text
-How many reads map to this gene?
-```
-
-Think:
-
-```text
-Which exon chains are supported?
-Which splice junctions are reliable?
-Which transcript ends are fuzzy?
-Which reads are partial?
-Which isoform calls are redundant?
-```
-
-That is why a custom pipeline should keep the BAM, QC metrics, read-to-isoform handoff, and SQANTI3 annotation layer clean.
-
-## Direct RNA, Direct cDNA, And PCR-cDNA
-
-Before choosing tools, know what molecule your reads came from. Oxford Nanopore can sequence native RNA or cDNA made from RNA. Those are not interchangeable protocols.
+Use a mature pipeline when it already answers your question. Build a custom pipeline when you need a different sequence of tools, a new method, unusual inputs, or outputs that an existing pipeline does not provide. [Week 5 explains what nf-core adds](week-05-nextflow-nfcore-rnaseq.html#what-nf-core-adds) and why it should remain your first choice for standard analyses.
 
 ```mermaid
 flowchart LR
-  sample["RNA sample"] --> direct["Direct RNA"]
-  sample --> cdna["Reverse transcription"]
-  cdna --> directcdna["Direct cDNA"]
-  cdna --> pcr["PCR-cDNA"]
-
-  direct --> native["Native RNA signal, modifications possible, lower input tolerance"]
-  directcdna --> full["cDNA molecules, no PCR amplification, better yield than direct RNA"]
-  pcr --> amplified["Amplified cDNA, lower input possible, PCR bias possible"]
+  a["Run an existing pipeline"] --> b["Read its workflow"]
+  b --> c["Edit one process"]
+  c --> d["Tune its resources"]
+  d --> e["Test on small data"]
 ```
 
-Read this table like a protocol map, not a ranking:
+You do not need to learn all of Nextflow before writing useful code. Start with four ideas:
 
-| Protocol | What is sequenced | Strength | Main caution |
-|---|---|---|---|
-| direct RNA | native RNA molecule | can preserve RNA-modification signal and native molecule direction | lower throughput, RNA degradation matters, basecalling and alignment need extra care |
-| direct cDNA | cDNA made from RNA without PCR amplification | useful for long transcript structure with less PCR bias | reverse-transcription artifacts and incomplete cDNA still matter |
-| PCR-cDNA | amplified cDNA | works with lower input and often gives more material | PCR duplicates, amplification bias, and chimeras can distort isoform support |
-| PacBio Iso-Seq | long-read cDNA on PacBio chemistry | strong mature tooling for high-quality consensus isoforms | platform and library-prep assumptions differ from ONT |
-
-The practical implication is simple:
-
-```text
-Protocol choice changes QC expectations, strandedness assumptions,
-alignment options, duplicate interpretation, and isoform evidence thresholds.
-```
-
-For example, direct RNA reads are strand-specific and may need minimap2 options such as `-uf` with splice alignment. cDNA protocols can be more forgiving for yield, but they can introduce reverse-transcription and amplification artifacts. If you collapse isoforms, protocol metadata should travel with every read from the samplesheet into the final report.
-
-## ONT-Specific QC Checklist
-
-ONT long-read RNA QC needs more than "did the command finish?"
-
-| QC layer | Metrics to inspect | Why it matters |
-|---|---|---|
-| raw FASTQ | read count, read length N50, length distribution, quality distribution | tells you whether the library produced enough useful long molecules |
-| adapters and contamination | adapter signal, lambda or other control contamination, unexpected sequence content | prevents technical molecules from becoming biological claims |
-| protocol fit | direct RNA vs cDNA vs PCR-cDNA, strand behavior, polyA expectations | changes alignment and interpretation choices |
-| alignment | mapping rate, supplementary/secondary rate, soft clipping, mismatch/indel profile | tells you whether reads align cleanly to the reference |
-| splice alignment | intron count, canonical junction fraction, junction wobble, unannotated junction support | central for isoform discovery |
-| transcript ends | TSS/TES spread, internal priming risk, truncation patterns | long-read transcript ends are often noisy |
-| isoform models | read support per isoform, redundant model rate, partial-read support | prevents overcalling weak or duplicate isoforms |
-| SQANTI3 | structural category, junction support, TSS/TES descriptors, artifact flags | annotates and curates transcript models before reporting novelty |
-
-Useful first-pass tools:
-
-- NanoPlot or pycoQC for read-level summaries
-- NanoFilt or filtlong for filtering when appropriate
-- samtools `flagstat`, `idxstats`, and `stats` for alignment summaries
-- minimap2 logs and BAM inspection for alignment behavior
-- IGV or JBrowse for targeted loci
-- SQANTI3 for isoform model annotation, QC, filtering, and curation
-
-For ONT isoform work, your QC question is:
-
-```text
-Are my reads long and clean enough to support transcript structure,
-and are my transcript models plausible after annotation-aware curation?
-```
-
-## Project Structure
-
-The Week 6 resources include this mini-pipeline:
-
-```text
-content/resources/week-06/
-  main.nf
-  nextflow.config
-  params.local.yml
-  samplesheet_ont.csv
-  modules/
-    local/
-      fastq_qc.nf
-      align_minimap2.nf
-      sort_index_bam.nf
-      alignment_qc.nf
-      isoform_collapse_placeholder.nf
-      sqanti3_annotation.nf
-```
-
-This is a simplified DSL2 structure:
-
-- `main.nf` wires the workflow together.
-- `nextflow.config` defines defaults, profiles, resources, reports, and execution settings.
-- `params.local.yml` stores run parameters.
-- `samplesheet_ont.csv` defines samples.
-- `modules/local/*.nf` define individual reusable steps.
-
-## Samplesheet Contract
-
-The samplesheet is the contract between your biological samples and your pipeline.
-
-```csv
-sample,fastq,protocol,condition
-ONT_CONTROL_1,data/ont/control_1.fastq.gz,cDNA,control
-ONT_CONTROL_2,data/ont/control_2.fastq.gz,cDNA,control
-ONT_TREATED_1,data/ont/treated_1.fastq.gz,cDNA,treated
-ONT_TREATED_2,data/ont/treated_2.fastq.gz,cDNA,treated
-```
-
-For real projects, consider adding:
-
-- run ID
-- barcode
-- flow cell
-- kit
-- basecaller version
-- tissue or cell type
-- replicate ID
-- target region
-- RNA input quality
-
-Good metadata saves projects. Bad metadata quietly ruins them.
-
-## Parameter File
-
-Use a parameter file instead of a very long command:
-
-```yaml
-input: "samplesheet_ont.csv"
-outdir: "results/ont_custom"
-reference: "references/genome.fa"
-annotation: "references/genes.gtf"
-minimap2_preset: "splice"
-strand_mode: "unknown"
-save_intermediate_bam: true
-```
-
-The important choices:
-
-| Parameter | Meaning |
+| Nextflow idea | Plain-language meaning |
 |---|---|
-| `input` | samplesheet path |
-| `outdir` | where published outputs go |
-| `reference` | genome FASTA for alignment |
-| `annotation` | GTF/GFF for downstream isoform interpretation |
-| `minimap2_preset` | long-read alignment mode, often `splice` for RNA |
-| `strand_mode` | helps direct RNA or cDNA-specific choices |
-| `save_intermediate_bam` | whether to publish unsorted alignment output |
-| `sqanti3_container` | tested SQANTI3 runtime image or local environment |
-| `sqanti3_extra_args` | extra SQANTI3 QC options after version-specific review |
+| process | one reproducible task, such as running `minimap2` |
+| channel | the path that carries files and metadata between tasks |
+| workflow | the order in which processes are connected |
+| configuration | where compute, containers, profiles, and reporting are controlled |
 
-For real ONT transcript analysis, reference and annotation compatibility matter just as much as they did in [Week 4](week-04-bulk-rnaseq-differential-expression.html).
+For a refresher, see [Nextflow's process-channel model](week-05-nextflow-nfcore-rnaseq.html#what-nextflow-is) and [how independent samples run in parallel](week-05-nextflow-nfcore-rnaseq.html#how-nextflow-parallelizes).
 
-## Main Workflow
+## The Project In One Picture
 
-The `main.nf` file starts with imports:
+Each concern has a home. This separation is what makes a custom pipeline maintainable.
+
+```mermaid
+flowchart TB
+  data["samplesheet and input files"] --> main["main.nf: route"]
+  main --> modules["modules/local: tool commands"]
+  config["nextflow.config: CPU, memory, time"] -.-> modules
+  software["Dockerfile or environment.yml: software"] -.-> modules
+  modules --> results["versioned results and reports"]
+```
+
+```text
+week-06/
+├── main.nf                         # Connects the analysis steps
+├── nextflow.config                 # CPUs, memory, time, profiles, reports
+├── params.local.yml                # Input and output paths
+├── samplesheet_ont.csv             # Sample metadata and FASTQ paths
+├── Dockerfile                      # Reproducible software image
+├── environment.yml                 # Conda alternative for Linux/x86
+└── modules/local/
+    ├── fastq_qc.nf                 # NanoPlot
+    ├── align_minimap2.nf           # minimap2 and samtools
+    ├── alignment_qc.nf             # samtools QC
+    ├── isoquant_discovery.nf       # IsoQuant transcript discovery
+    └── sqanti3_annotation.nf       # SQANTI3 classification
+```
+
+When you customize this project, you will usually edit only one of three places:
+
+| What you want to change | File to edit |
+|---|---|
+| samples, references, or output directory | [`samplesheet_ont.csv`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-06/samplesheet_ont.csv) or [`params.local.yml`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-06/params.local.yml) |
+| a tool command or its scientific options | the relevant file in [`modules/local/`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-06/modules/local) |
+| CPU, memory, run time, or execution platform | [`nextflow.config`](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-06/nextflow.config) |
+
+## The Scientific Goal
+
+The example starts with ONT reads and produces transcript models classified against a reference annotation.
+
+```mermaid
+flowchart LR
+  fq["ONT FASTQ"] --> readqc["NanoPlot"]
+  fq --> align["minimap2"]
+  align --> bam["sorted BAM"]
+  bam --> bamqc["samtools QC"]
+  bam --> discover["IsoQuant"]
+  discover --> gtf["transcript GTF"]
+  gtf --> classify["SQANTI3"]
+```
+
+| Step | Main output | Question answered |
+|---|---|---|
+| NanoPlot | read QC report | Are read length and quality usable? |
+| minimap2 + samtools | sorted, indexed BAM | Where do the reads align? |
+| samtools QC | mapping summaries | Did alignment behave as expected? |
+| IsoQuant | non-redundant transcript models | Which isoforms are supported by the reads? |
+| SQANTI3 | classification and QC tables | How do those models compare with known annotation? |
+
+IsoQuant performs transcript discovery and redundancy reduction. SQANTI3 evaluates the resulting models; it is not the collapse step.
+
+### Record The ONT Protocol
+
+The same analysis options are not correct for every ONT library.
+
+| Protocol | What is sequenced | Pipeline consequence |
+|---|---|---|
+| direct RNA | native RNA | directional; use direct-RNA-aware alignment and strand settings |
+| direct cDNA | unamplified cDNA | avoids PCR amplification but still reflects reverse-transcription artifacts |
+| PCR-cDNA | amplified cDNA | often higher yield; inspect amplification bias, duplicates, and chimeras |
+
+The samplesheet stores `protocol` for each sample. The pipeline uses it to select alignment and strand settings per sample.
+
+### How The Minimap2 Command Changes
+
+All three protocols need splice-aware alignment, but they do not have the same orientation and error profile. The [minimap2 long-RNA cookbook](https://github.com/lh3/minimap2/blob/master/cookbook.md#mapping-long-rna-seq-reads) recommends the following starting points.
+
+```bash
+# Direct RNA: stranded and typically noisier.
+minimap2 -ax splice -uf -k14 -t 8 reference.fa direct_rna.fastq.gz
+
+# Direct cDNA: do not force transcript orientation unless it is known.
+minimap2 -ax splice -t 8 reference.fa direct_cdna.fastq.gz
+
+# PCR-cDNA: the core alignment preset is the same as direct cDNA.
+minimap2 -ax splice -t 8 reference.fa pcr_cdna.fastq.gz
+```
+
+| Parameter | What it does | Why it matters here |
+|---|---|---|
+| `-a` | writes SAM alignments | `samtools sort` needs SAM/BAM-compatible output |
+| `-x splice` | selects the long-read spliced-alignment preset | allows long introns and reports introns with the `N` CIGAR operation |
+| `-u f`, written as `-uf` | tells minimap2 that reads follow the forward **transcript** strand | appropriate for ONT direct RNA; this does not mean the forward genomic strand |
+| `-k14` | uses 14-base minimizer seeds instead of the preset's longer seed | improves sensitivity for noisier direct RNA reads, with a possible speed and specificity cost |
+| `-t 8` | uses eight alignment threads | changes performance, not the scientific model |
+
+PCR amplification changes yield, duplication, and chimera risk, but it does not by itself require a different minimap2 preset. For both cDNA protocols, the pipeline leaves orientation unconstrained so minimap2 can infer it from splice signals. Add `-uf` only when preprocessing and library metadata demonstrate that every retained read is oriented with the transcript.
+
+For SIRV controls, `--splice-flank=no` may improve junction accuracy because SIRV constructs do not follow the genomic splice-flank pattern modeled by default. Do not carry that option into human or mouse data without a reason. An annotation-derived `--junc-bed` can favor known junctions, but it changes alignment scoring and should be recorded when novel isoforms are the goal.
+
+The protocol switch in `align_minimap2.nf` is intentionally small:
+
+```nextflow
+// Direct RNA receives the two extra flags; both cDNA protocols receive none.
+def extra = meta.protocol == 'directRNA' ? '-uf -k14' : ''
+
+minimap2 -ax splice ${extra} -t ${task.cpus} ${reference} ${fastq}
+```
+
+This pipeline gives IsoQuant an already aligned BAM, so protocol-specific orientation is handled here, during alignment. IsoQuant's `--stranded` option is omitted: it must not be treated as a way to repair a BAM aligned with the wrong orientation.
+
+## Read `main.nf` Like A Plan
+
+The top of `main.nf` imports reusable processes:
 
 ```nextflow
 include { FASTQ_QC } from './modules/local/fastq_qc'
 include { ALIGN_MINIMAP2 } from './modules/local/align_minimap2'
-include { SORT_INDEX_BAM } from './modules/local/sort_index_bam'
 include { ALIGNMENT_QC } from './modules/local/alignment_qc'
-include { ISOFORM_COLLAPSE_PLACEHOLDER } from './modules/local/isoform_collapse_placeholder'
+include { ISOQUANT_DISCOVERY } from './modules/local/isoquant_discovery'
+include { SQANTI3_ANNOTATION } from './modules/local/sqanti3_annotation'
 ```
 
-Plain English:
-
-```text
-Bring in the steps we want to use.
-Each step lives in its own module file.
-```
-
-Then it reads the samplesheet:
+The `workflow` block then connects them:
 
 ```nextflow
-Channel
-  .fromPath(params.input, checkIfExists: true)
-  .splitCsv(header: true)
-  .map { row ->
-    tuple(
-      [ id: row.sample, protocol: row.protocol, condition: row.condition ],
-      file(row.fastq, checkIfExists: true)
-    )
-  }
-  .set { ch_reads }
+FASTQ_QC(ch_reads)
+
+ALIGN_MINIMAP2(ch_reads, ch_reference)
+ALIGNMENT_QC(ALIGN_MINIMAP2.out.bam)
+ISOQUANT_DISCOVERY(ALIGN_MINIMAP2.out.bam, ch_reference, ch_annotation)
+SQANTI3_ANNOTATION(ISOQUANT_DISCOVERY.out.models, ch_annotation, ch_reference)
 ```
 
-This is the most important pattern in beginner Nextflow:
+Read this from top to bottom as a data route. `ALIGN_MINIMAP2.out.bam` becomes input to both alignment QC and IsoQuant. Those consumers can run as soon as a sample's BAM is ready; Nextflow does not wait for every sample to finish first.
 
-```text
-Read rows.
-Attach metadata.
-Attach the FASTQ file.
-Emit one tuple per sample.
-```
-
-Each emitted item looks conceptually like:
-
-```text
-[
-  [id: "ONT_CONTROL_1", protocol: "cDNA", condition: "control"],
-  data/ont/control_1.fastq.gz
-]
-```
-
-That metadata travels with the file through the pipeline.
-
-## Read QC Module
-
-The QC module accepts sample metadata and a FASTQ:
+The samplesheet is converted into a channel containing a metadata map and a FASTQ file:
 
 ```nextflow
-process FASTQ_QC {
+tuple(
+  [ id: row.sample, protocol: row.protocol, condition: row.condition ],
+  file(row.fastq, checkIfExists: true)
+)
+```
+
+Keeping metadata beside the file prevents sample identity and protocol from being lost as data move through the workflow. This is the same [samplesheet-as-contract principle](week-05-nextflow-nfcore-rnaseq.html#the-samplesheet-is-the-contract) used by nf-core.
+
+## A Process Is One Reusable Step
+
+Here is the project's actual IsoQuant module. The comments are part of the downloadable file, so the code can also serve as a compact reference while you edit it.
+
+```nextflow
+process ISOQUANT_DISCOVERY {
+  // Show the sample ID beside this task in the Nextflow log.
   tag "${meta.id}"
-  label 'process_low'
 
-  input:
-  tuple val(meta), path(fastq)
-
-  output:
-  tuple val(meta), path("${meta.id}_nanoplot"), emit: report
-
-  script:
-  """
-  NanoPlot \
-    --fastq ${fastq} \
-    --outdir ${meta.id}_nanoplot \
-    --prefix ${meta.id}_
-  """
-}
-```
-
-What to notice:
-
-- `tag "${meta.id}"` makes logs readable.
-- `label 'process_low'` lets config assign resources.
-- `tuple val(meta), path(fastq)` keeps sample identity with the file.
-- `emit: report` names the output for later use.
-
-## Minimap2 Alignment Module
-
-For ONT RNA/cDNA reads, minimap2 is a common aligner:
-
-```nextflow
-process ALIGN_MINIMAP2 {
-  tag "${meta.id}"
+  // Apply the high-resource CPU, memory, and time settings from nextflow.config.
   label 'process_high'
 
-  input:
-  tuple val(meta), path(fastq)
-  path reference
-  val preset
-  val strand_mode
+  // Copy final deliverables from Nextflow's work directory into the results folder.
+  publishDir "${params.outdir}/isoquant", mode: 'copy'
 
+  // Use the container with Docker/Singularity profiles or Conda with the Conda profile.
+  container 'biofield/ont-isoforms:2026.10'
+  conda 'bioconda::isoquant=4.0.0'
+
+  // Declare every file and metadata object required by one task.
+  input:
+  tuple val(meta), path(bam), path(bai)
+  path reference
+  path annotation
+
+  // Name the transcript-model GTF for SQANTI3 and retain the complete IsoQuant folder.
   output:
-  tuple val(meta), path("${meta.id}.sam"), emit: sam
+  tuple val(meta), path("${meta.id}.transcript_models.gtf"), emit: models
+  tuple val(meta), path("${meta.id}.isoquant"), emit: results
 
   script:
-  def extra = strand_mode == 'directRNA' ? '-uf' : ''
   """
-  minimap2 \
-    -ax ${preset} ${extra} \
-    -t ${task.cpus} \
-    ${reference} \
-    ${fastq} \
-    > ${meta.id}.sam
+  # Stop on an error, an unset variable, or a failed command inside a pipe.
+  set -euo pipefail
+
+  # Reconstruct and quantify ONT transcript models against the supplied annotation.
+  isoquant --data_type nanopore --bam ${bam} --reference ${reference} \
+    --genedb ${annotation} --complete_genedb \
+    --threads ${task.cpus} --prefix ${meta.id} --output ${meta.id}.isoquant
+
+  # Find the model GTF produced inside IsoQuant's version-specific output tree.
+  model_gtf=\$(find ${meta.id}.isoquant -type f -name '*transcript_models.gtf' -print -quit)
+
+  # Fail the task if IsoQuant completed without creating the expected GTF.
+  test -n "\${model_gtf}"
+
+  # Give the GTF a stable name for the next Nextflow process.
+  cp "\${model_gtf}" ${meta.id}.transcript_models.gtf
   """
 }
 ```
 
-For transcript-aware alignment, `-ax splice` is the basic starting point. Direct RNA may need additional care, including strand-aware options. Do not treat the preset as a magic truth machine. Always inspect alignment behavior at known loci.
+The Nextflow directives define the task contract:
 
-## BAM Sorting And QC
-
-Downstream transcript tools usually expect sorted and indexed BAM files:
-
-```nextflow
-samtools sort -o sample.sorted.bam sample.sam
-samtools index sample.sorted.bam
-samtools flagstat sample.sorted.bam
-samtools idxstats sample.sorted.bam
-```
-
-The pipeline separates this into modules:
-
-```text
-ALIGN_MINIMAP2
-  -> SORT_INDEX_BAM
-  -> ALIGNMENT_QC
-```
-
-That separation is useful. You may later swap the aligner, but still keep the sorting and QC steps.
-
-## Public ONT QC Demo
-
-For public practice data, use the **Singapore Nanopore Expression Data Set (SG-NEx)**. SG-NEx is a public benchmark resource for long-read RNA-seq with Nanopore PCR-cDNA, direct cDNA, direct RNA, PacBio Iso-Seq, matched short-read RNA-seq, and processed alignment files.
-
-The Week 6 resources include one public direct-cDNA A549 sample:
-
-```text
-content/resources/week-06/sgnex_ont_demo_samples.tsv
-```
-
-The demo script streams a small prefix of the public FASTQ file and writes a local subset:
-
-```bash
-# From the repository root.
-bash content/resources/week-06/run_sgnex_ont_qc_demo.sh 10000
-```
-
-What it does:
-
-```text
-public SG-NEx FASTQ URL
-  -> stream with curl
-  -> decompress
-  -> keep first 10,000 reads
-  -> recompress local teaching FASTQ
-  -> check gzip integrity
-  -> count FASTQ lines and reads
-```
-
-Expected local output:
-
-```text
-data/sgnex_demo/
-  SGNex_A549_directcDNA_replicate1_run3.10000_reads.fastq.gz
-```
-
-Then run read-level QC if NanoPlot is installed:
-
-```bash
-NanoPlot \
-  --fastq data/sgnex_demo/SGNex_A549_directcDNA_replicate1_run3.10000_reads.fastq.gz \
-  --outdir data/sgnex_demo/nanoplot \
-  --prefix SGNex_A549_directcDNA_
-```
-
-Interpret the NanoPlot-style report:
-
-| Plot or metric | What to ask |
+| Line | Concise meaning |
 |---|---|
-| read length histogram | are reads long enough for transcript-spanning evidence? |
-| read quality distribution | is quality consistent with the chemistry/basecaller? |
-| yield over reads | is the subset behaving normally or dominated by a few huge reads? |
-| N50 | does the library preserve long molecules? |
-| quality vs length | are long reads unusually low quality? |
+| `process ISOQUANT_DISCOVERY {` | defines a reusable task named `ISOQUANT_DISCOVERY` |
+| `tag "${meta.id}"` | displays the sample ID in logs and reports |
+| `label 'process_high'` | selects the high-resource settings in `nextflow.config` |
+| `publishDir ... mode: 'copy'` | copies final files into `results/.../isoquant`; downstream tasks still use the output channel |
+| `container ...` | pins the Docker/Singularity image |
+| `conda ...` | pins the Conda package when the Conda profile is enabled |
+| `input:` | begins the input declaration |
+| `tuple val(meta), path(bam), path(bai)` | keeps sample metadata, sorted BAM, and BAM index together |
+| `path reference` | stages the reference FASTA into the task directory |
+| `path annotation` | stages the matching GTF/GFF annotation |
+| `output:` | begins the output declaration |
+| `...transcript_models.gtf..., emit: models` | exposes a stable GTF output named `models` for SQANTI3 |
+| `...isoquant..., emit: results` | retains IsoQuant's complete output directory as `results` |
+| `script:` | begins the code that builds and runs the shell command |
+| `""" ... """` | encloses the Bash script while allowing Nextflow variables to be inserted |
 
-This is intentionally a QC demo, not a complete SG-NEx analysis. Full SG-NEx files can be large. Start small, learn the checks, then scale deliberately.
+The shell script then runs and verifies IsoQuant:
 
-## Isoform-Collapse Handoff
-
-The final module is intentionally a placeholder:
-
-```text
-ISOFORM_COLLAPSE_PLACEHOLDER
-```
-
-This is where a real project might call:
-
-- IsoQuant
-- StringTie2 long-read mode
-- FLAIR
-- TALON
-- a custom splice-junction-first collapse engine
-
-This is also where SQANTI3 enters the plan, but with a very specific role:
-
-```text
-isoform discovery/collapse creates transcript models
-SQANTI3 annotates, classifies, QC-checks, filters, and helps curate those models
-```
-
-SQANTI3 is not a direct replacement for minimap2, IsoQuant, FLAIR, StringTie2, or a custom collapse algorithm. It evaluates the transcript models they produce.
-
-For your own ONT isoform-collapse algorithm, a sensible plan is:
-
-```text
-sorted BAM
-  -> parse CIGAR operations
-  -> extract exon blocks and intron chains
-  -> correct splice-junction wobble
-  -> hash corrected intron chains
-  -> cluster fuzzy TSS/TES endpoints
-  -> require read support
-  -> classify partial reads
-  -> export GFF3, BED12, TSV, and read assignments
-```
-
-The key idea is to make isoform collapse mostly about **splice structure**, not raw sequence identity. ONT errors should not create new transcript models just because a read has small indels.
-
-## SQANTI3 Annotation And Curation
-
-After isoform discovery, run SQANTI3 before treating novel isoforms as biological findings.
-
-Conceptual flow:
-
-```text
-sorted BAM
-  -> isoform discovery/collapse
-  -> collapsed_isoforms.gtf
-  -> SQANTI3 QC and annotation
-  -> structural categories, junction descriptors, TSS/TES descriptors, artifact flags
-```
-
-SQANTI3 helps answer:
-
-| Question | Why it matters |
+| Line or option | Concise meaning |
 |---|---|
-| full splice match or incomplete splice match? | distinguishes known transcripts from partial models |
-| novel in catalog or novel not in catalog? | separates known-junction combinations from novel-junction models |
-| canonical or noncanonical junctions? | flags potential alignment or transcript artifacts |
-| suspicious TSS/TES? | transcript ends are noisy in long-read data |
-| ORF/CDS support? | helps functional interpretation |
-| likely artifact? | prevents weak models from becoming claims |
+| `set -euo pipefail` | stops on failed commands, unset variables, or failed pipelines |
+| `--data_type nanopore` | selects IsoQuant's ONT-specific algorithm settings |
+| `--bam ${bam}` | supplies the sorted, indexed long-read alignments |
+| `--reference ${reference}` | supplies the reference genome; required even with BAM input |
+| `--genedb ${annotation}` | supplies known genes and transcripts for guided discovery and classification |
+| `--complete_genedb` | marks an official annotation with gene and transcript features, speeding database preparation |
+| `--threads ${task.cpus}` | uses the CPU allocation from `nextflow.config` |
+| `--prefix ${meta.id}` | names outputs with the sample ID |
+| `--output ${meta.id}.isoquant` | writes the full IsoQuant result directory |
+| `model_gtf=$(find ... -print -quit)` | finds the first transcript-model GTF inside that directory |
+| `test -n "${model_gtf}"` | fails immediately if no model GTF was found |
+| `cp ... ${meta.id}.transcript_models.gtf` | creates the predictable filename declared in `output:` |
 
-Typical command shape:
+Notice `${task.cpus}` in the IsoQuant command. The module does not hard-code a thread count; it uses the CPUs assigned by the configuration.
 
-```bash
-sqanti3_qc.py \
-  collapsed_isoforms.gtf \
-  reference_annotation.gtf \
-  genome.fa \
-  --dir sqanti3 \
-  --output sample_sqanti3
-```
+## Change Memory Without Rewriting The Process
 
-The Week 6 resources include:
-
-```text
-modules/local/sqanti3_annotation.nf
-```
-
-That module is a skeleton because SQANTI3 releases and runtime setup can change. Before using it in production:
-
-```text
-1. Pick a SQANTI3 release.
-2. Pin and test the container or Conda environment.
-3. Confirm the command-line arguments for that release.
-4. Provide collapsed transcript models, reference annotation, and genome FASTA.
-5. Review SQANTI3 output before reporting novel isoforms.
-```
-
-Practical rule:
-
-```text
-Do not publish novel ONT isoforms without annotation-aware QC such as SQANTI3.
-```
-
-## Execution Config
-
-The `nextflow.config` file controls execution:
+The module uses `label 'process_high'`. That label maps to a resource block in `nextflow.config`:
 
 ```nextflow
 process {
-  cpus = 2
-  memory = '8 GB'
-  time = '4h'
+  withLabel: process_low {
+    cpus = 1
+    memory = '2 GB'
+    time = '2h'
+  }
 
   withLabel: process_high {
-    cpus = 8
-    memory = '32 GB'
+    cpus = 4
+    memory = '8 GB'
     time = '12h'
   }
 }
 ```
 
-Labels keep resource rules out of the module logic. The module says:
-
-```text
-I am process_high.
-```
-
-The config says:
-
-```text
-process_high gets 8 CPUs and 32 GB.
-```
-
-That makes the pipeline easier to tune.
-
-## Local, HPC, And AWS Profiles
-
-Profiles let the same pipeline run in different environments:
+If IsoQuant needs more memory but the other high-resource processes do not, place a process-specific override **after** the label blocks inside the existing `process { ... }` section:
 
 ```nextflow
-profiles {
-  local {
-    process.executor = 'local'
-  }
-
-  docker {
-    docker.enabled = true
-    process.executor = 'local'
-  }
-
-  singularity {
-    singularity.enabled = true
-    singularity.autoMounts = true
-    process.executor = 'local'
-  }
-
-  awsbatch {
-    process.executor = 'awsbatch'
-    process.queue = 'YOUR_AWS_BATCH_QUEUE'
-    workDir = 's3://YOUR_BUCKET/nextflow-work/custom-ont'
-    aws.region = 'us-west-2'
+process {
+  // Existing label blocks remain above this override.
+  withName: ISOQUANT_DISCOVERY {
+    cpus = 8
+    memory = '16 GB'
+    time = '24h'
   }
 }
 ```
 
-For local learning, use Docker if it is available. For HPC, Singularity/Apptainer is often the right path. For AWS, configure Batch, S3 work storage, region, queues, IAM, and containers carefully before running production data.
+Now `${task.cpus}` becomes `8` inside the IsoQuant command. The scientific module remains unchanged, while local, HPC, and cloud profiles can request different hardware.
 
-## Run The Pipeline
+Nextflow also writes `trace.txt`, `report.html`, `timeline.html`, and `dag.html`. Use the trace to compare requested resources with run time and memory use before increasing every task "just in case."
 
-From the Week 6 resource folder:
+## Three Safe Ways To Customize This Pipeline
 
-```bash
-cd content/resources/week-06
+1. **Change the data.** Edit `samplesheet_ont.csv` and `params.local.yml`; do not embed personal paths inside modules.
+2. **Change one scientific command.** Edit the relevant module, keep its input and output contract stable, and test it on the toy dataset.
+3. **Change compute separately.** Adjust a label or add a `withName` override in `nextflow.config`.
 
-# See the help message.
-nextflow run main.nf --help
+Use this loop whenever you experiment:
+
+```mermaid
+flowchart LR
+  edit["Make one small edit"] --> test["Run the toy data"]
+  test --> inspect["Inspect outputs and report"]
+  inspect --> resume["Run again with resume"]
+  resume --> edit
 ```
 
-For real data:
+Nextflow caches completed tasks. After an edit, `-resume` reruns only work affected by the change. [Week 5 explains caching and `-resume`](week-05-nextflow-nfcore-rnaseq.html#caching-and--resume) in more detail.
+
+## Run The Verified Toy Project
+
+Run these commands in a terminal from the repository root, not inside JupyterLab.
 
 ```bash
-nextflow run main.nf \
+# 1. Download IsoQuant's small public simulated ONT dataset.
+bash content/resources/week-06/prepare_toy_test.sh
+
+# 2. On Apple Silicon, start Colima as the Docker runtime.
+# Skip this line if Docker Desktop is already running.
+colima start --cpu 4 --memory 8
+
+# 3. Build the pinned image containing all pipeline tools.
+bash content/resources/week-06/build_container.sh
+
+# 4. Run the complete workflow and reuse valid cached tasks.
+nextflow run content/resources/week-06/main.nf \
+  --input data/isoquant_toy/samplesheet.csv \
+  --reference data/isoquant_toy/chr9.4M.fa.gz \
+  --annotation data/isoquant_toy/chr9.4M.gtf.gz \
+  --outdir results/week06-toy \
   -profile docker \
-  -params-file params.local.yml \
   -resume
 ```
 
-Before the real run, check:
-
-```bash
-nextflow -version
-docker info
-test -f references/genome.fa
-test -f references/genes.gtf
-test -f data/ont/control_1.fastq.gz
-```
-
-## Production Features To Add Later
-
-Once the skeleton works, add features deliberately:
-
-| Feature | Why add it |
-|---|---|
-| samplesheet validation | fail early when metadata is wrong |
-| MultiQC integration | one report across QC modules |
-| `stub` mode | test workflow structure without real tools |
-| container version pinning | reproducibility |
-| reference indexing process | avoid requiring prebuilt indexes |
-| region restriction | useful for targeted locus analysis |
-| UMI handling | if protocol includes UMIs |
-| strandedness checks | especially for direct RNA |
-| SQANTI3 module | annotation-aware isoform QC and curation |
-| isoform benchmark outputs | compare tools and custom algorithms |
-| CI tests | make sure the pipeline keeps running after edits |
-
-Do not add everything at once. A pipeline becomes reliable by growing in tested layers.
-
-## Compare With nf-core/nanoseq
-
-`nf-core/nanoseq` is the community pipeline to know for Nanopore data. Current documentation describes it as a Nanopore demultiplexing, QC, and alignment pipeline with support for `directRNA`, `cDNA`, and DNA-style protocols.
-
-Typical launch shape:
-
-```bash
-nextflow run nf-core/nanoseq \
-  --input samplesheet.csv \
-  --protocol cDNA \
-  -profile docker
-```
-
-Or for direct RNA:
-
-```bash
-nextflow run nf-core/nanoseq \
-  --input samplesheet.csv \
-  --protocol directRNA \
-  -profile docker
-```
-
-Use `nf-core/nanoseq` when:
-
-- your analysis fits its supported routes
-- you want community-tested defaults
-- you need demultiplexing/QC/alignment in a standard format
-- you want strong documentation and stable releases
-
-Use your custom pipeline when:
-
-- you are prototyping a new isoform-collapse method
-- you need a very small targeted-locus workflow
-- you want to benchmark alternative tools
-- you need explicit SQANTI3 curation after custom isoform discovery
-- you need to expose algorithmic choices for a methods project
-- you are teaching how Nextflow works
-
-The mature move is not to reject nf-core. It is to know when to use it, when to extend it, and when to build a focused tool beside it.
-
-## Pipeline Skeleton Complete
-
-At this point, you have the shape of a real pipeline:
+Expected result folders:
 
 ```text
-samplesheet
-  -> channel of sample metadata + FASTQ
-  -> QC module
-  -> alignment module
-  -> sorting/indexing module
-  -> alignment QC module
-  -> isoform-collapse handoff
-  -> SQANTI3 annotation and curation layer
-  -> local/Docker/Singularity/AWS profiles
-  -> trace/report/timeline outputs
+results/week06-toy/
+├── fastq_qc/
+├── alignments/
+├── alignment_qc/
+├── isoquant/
+├── sqanti3/
+└── pipeline_info/
 ```
 
-That is the core of production bioinformatics engineering: clear inputs, modular steps, explicit environments, reproducible outputs, and honest limitations.
+The tested toy run produced:
 
-## Custom Pipeline Checklist
+```text
+FASTQ reads:                  439
+Primary alignments:           439 (100%)
+IsoQuant transcript models:    30
+SQANTI3 classification rows:   30
+```
 
-| Question | Good answer |
-|---|---|
-| What is the biological unit? | sample, replicate, barcode, donor, condition |
-| What is the file contract? | samplesheet with stable columns |
-| What is the reference contract? | FASTA and annotation source recorded |
-| What is parallelizable? | per-sample QC and alignment |
-| What must wait? | summary reports and merged outputs |
-| What is published? | final outputs only, not random `work/` files |
-| What is cached? | task executions, reused with `-resume` |
-| What is tested? | syntax, tiny data, containers, expected outputs |
-| What is not solved yet? | isoform-collapse accuracy, SQANTI3 curation, and benchmarking |
+The 100% mapping rate is expected for simulated reads generated from this small reference; it is not a benchmark for biological ONT data. The run was verified with Nextflow 26.04.2 on Apple Silicon using Colima with 4 CPUs, 8 GiB memory, and a 40 GiB virtual disk.
+
+The first container build can take several minutes and uses about 3.16 GB. On Apple Silicon, Docker or Colima is the supported path because IsoQuant 4.0.0's current dependency chain does not resolve natively on `osx-arm64`.
+
+## Debug By Looking In The Right Place
+
+| What went wrong | Check first | Likely next action |
+|---|---|---|
+| Nextflow syntax or channel error | `.nextflow.log` | inspect `main.nf` near the reported line |
+| one tool failed | the task's `work/.../.command.err` | read the tool error before changing resources |
+| task exited with code 137 | `trace.txt` and `.command.err` | increase memory for that process only |
+| expected output is missing | module `output:` block and `.command.out` | match the declared filename to the real filename |
+| a small edit reruns everything | launch directory and `-resume` | run from the same directory with the same work cache |
+
+The work directory is not clutter to delete during debugging. It contains the exact command, environment, standard output, and error for each task.
+
+## Before You Use Real Data
+
+- Confirm that FASTA and GTF use the same genome build and contig names.
+- Record direct RNA, direct cDNA, or PCR-cDNA for every sample.
+- Inspect read and alignment QC before interpreting isoforms.
+- Treat "novel" as a classification, not proof of biological function.
+- Require read support, coherent splice junctions, compatible strand, replicate evidence, and relevant external evidence.
+- Build a shared, filtered transcript catalog before comparing isoform abundance across samples.
+
+This teaching workflow discovers models per sample. For differential transcript usage, perform joint or reconciled discovery, freeze one validated annotation, and quantify every sample against that same feature set.
+
+## You Now Have A Pattern To Reuse
+
+To build another custom pipeline:
+
+1. Write the input contract.
+2. Put one tool or scientific action in each process.
+3. Connect declared outputs to the next process's inputs.
+4. Keep software and compute configuration outside the command logic.
+5. Test on the smallest dataset that can prove the workflow works.
+
+The biological tools will change. This structure does not. Start by copying one module, changing its command and output contract, and connecting it in `main.nf`. That is already custom pipeline development.
+
+Use `nf-core/nanoseq` when you need community-maintained Nanopore preprocessing, QC, demultiplexing, and alignment. Use this focused project when transcript discovery, protocol-aware settings, IsoQuant models, and SQANTI3 classification are the central deliverables.
 
 ## Next In The Series
 
-Week 7 compares Nextflow with other workflow managers and shows how to run Nextflow on AWS efficiently without learning cloud cost lessons the painful way.
+Continue with [Week 7](week-07-rnaseq-in-seven-minutes.html) to add fast contract tests, scientific assertions, GitHub Actions, and Jenkins to this exact pipeline.
 
-## Credits and References
+## Credits And References
 
-- Nextflow documentation: https://docs.seqera.io/nextflow/
-- Nextflow workflow documentation: https://docs.seqera.io/nextflow/workflow
-- Nextflow modules documentation: https://docs.seqera.io/nextflow/module
-- nf-core documentation: https://nf-co.re/
-- nf-core/nanoseq documentation: https://nf-co.re/nanoseq/
-- nf-core/nanoseq usage documentation: https://nf-co.re/nanoseq/3.1.0/docs/usage/
-- SG-NEx AWS Open Data Registry: https://registry.opendata.aws/sgnex/
-- SG-NEx data repository: https://github.com/GoekeLab/sg-nex-data
-- Chen Y et al. A systematic benchmark of Nanopore long-read RNA sequencing for transcript-level analysis in human cell lines. Nature Methods. 2025. https://doi.org/10.1038/s41592-025-02623-4
-- Grunberger F et al. Nanopore sequencing of RNA and cDNA molecules in Escherichia coli. RNA. 2022. https://doi.org/10.1261/rna.079086.121
-- SQANTI3 GitHub repository and documentation: https://github.com/ConesaLab/SQANTI3
-- SQANTI3 paper: Pardo-Palacios FJ et al. SQANTI3: curation of long-read transcriptomes for accurate identification of known and novel isoforms. Nature Methods. 2024. https://doi.org/10.1038/s41592-024-02229-2
-- Oxford Nanopore EPI2ME workflows: https://epi2me.nanoporetech.com/wfindex/
-- Minimap2 paper: Li H. Minimap2: pairwise alignment for nucleotide sequences. Bioinformatics. 2018. https://doi.org/10.1093/bioinformatics/bty191
-- SAMtools paper: Danecek P et al. Twelve years of SAMtools and BCFtools. GigaScience. 2021. https://doi.org/10.1093/gigascience/giab008
+- [Nextflow documentation](https://www.nextflow.io/docs/latest/)
+- [nf-core/nanoseq](https://nf-co.re/nanoseq/)
+- [IsoQuant documentation and public test data](https://github.com/ablab/IsoQuant)
+- Prjibelski AD et al. [IsoQuant: a tool for accurate novel isoform discovery with long reads](https://doi.org/10.1186/s13059-023-02898-2). *Genome Biology*. 2023.
+- [SQANTI3 documentation](https://github.com/ConesaLab/SQANTI3)
+- Pardo-Palacios FJ et al. [SQANTI3: curation of long-read transcriptomes](https://doi.org/10.1038/s41592-024-02229-2). *Nature Methods*. 2024.
+- [minimap2 documentation](https://github.com/lh3/minimap2)

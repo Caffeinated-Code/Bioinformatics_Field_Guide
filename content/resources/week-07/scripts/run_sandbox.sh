@@ -5,10 +5,12 @@ resource_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 outdir="${1:-${resource_dir}/.test-results/sandbox}"
 workdir="${resource_dir}/.test-work/sandbox"
 
-command -v nextflow >/dev/null || {
-  printf 'nextflow is required but was not found on PATH.\n' >&2
-  exit 127
-}
+for required_command in nextflow python3; do
+  command -v "${required_command}" >/dev/null || {
+    printf '%s is required but was not found on PATH.\n' "${required_command}" >&2
+    exit 127
+  }
+done
 
 mkdir -p "${outdir}" "${workdir}"
 

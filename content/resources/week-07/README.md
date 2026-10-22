@@ -13,9 +13,23 @@ This project tests the custom ONT isoform workflow from Week 6 with the same com
 
 The fast suite does not claim that minimap2, IsoQuant, or SQANTI3 produced biologically valid results. The public Week 6 toy dataset remains the real integration test.
 
+## Project Map
+
+```text
+week-07/
+  sandbox/main.nf             # two-process FASTQ QC workflow
+  sandbox/data/tiny.fastq     # three synthetic reads
+  sandbox/tests/test_qc.py    # four content assertions
+  scripts/run_sandbox.sh      # one-command hands-on lab
+  scripts/run_fast_ci.sh      # shared local and CI entry point
+  Jenkinsfile                 # Jenkins pipeline-as-code example
+```
+
 ## Run The Tiny Sandbox
 
-Requirements: Nextflow, a supported Java runtime, Bash, and Python 3. No Docker or biological software is needed.
+Requirements: Nextflow 26.04.2, Java 17, Bash, and Python 3. No Docker or biological software is needed.
+
+From the repository root, run:
 
 ```bash
 bash content/resources/week-07/scripts/run_sandbox.sh
@@ -41,7 +55,7 @@ To see CI stop a bad result, run the pipeline directly with `--min_reads 4`. The
 
 ## Run The Complete Fast Suite
 
-Install nf-test 0.9.3, then run:
+Install nf-test 0.9.3, then run this from the repository root:
 
 ```bash
 bash content/resources/week-07/scripts/run_fast_ci.sh
@@ -52,7 +66,8 @@ The script is the shared test entry point. GitHub Actions and Jenkins call it in
 ## CI Runners
 
 - `.github/workflows/week-07-pipeline-ci.yml` is the public GitHub Actions workflow.
-- `Jenkinsfile` is the enterprise or on-premises equivalent.
+- `Jenkinsfile` is the enterprise or on-premises equivalent. Set the Jenkins script path to `content/resources/week-07/Jenkinsfile`.
 - A Jenkins agent labeled `bioinformatics-ci` needs Java 17, Nextflow 26.04.2, nf-test 0.9.3, Bash, and Python 3 on `PATH`.
+- The Jenkins controller needs the Pipeline and JUnit plugins to execute the file and publish the XML test report.
 
 Use tiny synthetic or public data in CI. Never upload protected patient data, production credentials, or controlled reference assets to a public runner.

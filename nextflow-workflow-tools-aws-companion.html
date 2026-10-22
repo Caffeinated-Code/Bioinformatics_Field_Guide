@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A practical comparison of bioinformatics workflow
+managers, plus cost-aware AWS Batch patterns for Nextflow"
+    />
+    <meta property="og:title" content="Cloud Companion: Choosing
+Workflow Tools And Running Nextflow On AWS" />
+    <meta
+      property="og:description"
+      content="A practical comparison of bioinformatics workflow
+managers, plus cost-aware AWS Batch patterns for Nextflow"
+    />
+    <meta property="og:type" content="article" />
+    <title>Cloud Companion: Choosing Workflow Tools And Running Nextflow
+On AWS | Bioinformatics Field Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/site.css?v=20261022-ci-guide" />
+  </head>
+  <body class="article-page">
+    <div class="reading-progress" id="reading-progress"></div>
+
+    <header class="site-header" id="site-header">
+      <nav class="nav container" aria-label="Primary navigation">
+        <a href="index.html" class="nav__brand">Bioinformatics Field Guide</a>
+        <div class="nav__links" id="nav-links">
+          <a href="index.html#guides">Guides</a>
+          <a href="index.html#resources">Resources</a>
+          <a href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+        <div class="nav__actions">
+          <button class="icon-button" id="theme-toggle" aria-label="Toggle color theme">
+            <i class="ri-moon-line" aria-hidden="true"></i>
+          </button>
+          <button class="icon-button nav__toggle" id="nav-toggle" aria-label="Open menu">
+            <i class="ri-menu-line" aria-hidden="true"></i>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="article-hero">
+        <div class="container article-hero__grid">
+          <div>
+            <a class="back-link" href="index.html"><i class="ri-arrow-left-line" aria-hidden="true"></i> Field Guide home</a>
+            <p class="eyebrow">Week 7 companion · Deep dive</p>
+            <h1>Cloud Companion: Choosing Workflow Tools And Running
+Nextflow On AWS</h1>
+                        <p class="article-hero__subtitle">A practical
+comparison of bioinformatics workflow managers, plus cost-aware AWS
+Batch patterns for Nextflow</p>
+                        <div class="article-meta">
+              <span><i class="ri-user-smile-line" aria-hidden="true"></i> Beginner friendly</span>
+              <span><i class="ri-terminal-box-line" aria-hidden="true"></i> Tested commands</span>
+              <span><i class="ri-git-repository-line" aria-hidden="true"></i> Reproducible assets</span>
+            </div>
+          </div>
+          <aside class="article-card">
+            <span class="article-card__label">Original asset</span>
+            <p>Workflow manager decision matrix and AWS Batch starter
+config</p>
+            <a href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide" target="_blank" rel="noreferrer">
+              View repository <i class="ri-external-link-line" aria-hidden="true"></i>
+            </a>
+          </aside>
+        </div>
+      </section>
+
+      <div class="container article-layout">
+        <aside class="toc" aria-label="Table of contents">
+          <p class="toc__title">On this page</p>
+          <ul>
+          <li><a
+          href="#cloud-companion-choosing-workflow-tools-and-running-nextflow-on-aws"
+          id="toc-cloud-companion-choosing-workflow-tools-and-running-nextflow-on-aws">Cloud
+          Companion: Choosing Workflow Tools And Running Nextflow On
+          AWS</a>
+          <ul>
+          <li><a href="#the-problem-workflow-tools-solve"
+          id="toc-the-problem-workflow-tools-solve">The Problem Workflow
+          Tools Solve</a></li>
+          <li><a href="#the-short-comparison"
+          id="toc-the-short-comparison">The Short Comparison</a></li>
+          <li><a href="#why-nextflow-often-wins-for-omics"
+          id="toc-why-nextflow-often-wins-for-omics">Why Nextflow Often
+          Wins For Omics</a></li>
+          <li><a href="#how-nextflow-runs-on-aws"
+          id="toc-how-nextflow-runs-on-aws">How Nextflow Runs On
+          AWS</a></li>
+          <li><a href="#cost-and-time-best-practices"
+          id="toc-cost-and-time-best-practices">Cost And Time Best
+          Practices</a></li>
+          <li><a href="#a-credit-bounded-aws-learning-path"
+          id="toc-a-credit-bounded-aws-learning-path">A Credit-Bounded
+          AWS Learning Path</a></li>
+          <li><a href="#tutorial-local-first-aws-second"
+          id="toc-tutorial-local-first-aws-second">Tutorial: Local
+          First, AWS Second</a></li>
+          <li><a href="#create-a-bounded-learning-environment"
+          id="toc-create-a-bounded-learning-environment">Create A
+          Bounded Learning Environment</a></li>
+          <li><a href="#when-aws-batch-misbehaves"
+          id="toc-when-aws-batch-misbehaves">When AWS Batch
+          Misbehaves</a></li>
+          <li><a href="#aws-checklist-before-running-real-data"
+          id="toc-aws-checklist-before-running-real-data">AWS Checklist
+          Before Running Real Data</a></li>
+          <li><a href="#when-not-to-use-aws"
+          id="toc-when-not-to-use-aws">When Not To Use AWS</a></li>
+          <li><a href="#what-to-save-from-every-workflow-run"
+          id="toc-what-to-save-from-every-workflow-run">What To Save
+          From Every Workflow Run</a></li>
+          <li><a href="#next-in-the-series"
+          id="toc-next-in-the-series">Next In The Series</a></li>
+          <li><a href="#credits-and-references"
+          id="toc-credits-and-references">Credits and
+          References</a></li>
+          </ul></li>
+          </ul>
+        </aside>
+
+        <article class="article-content">
+          <h1
+          id="cloud-companion-choosing-workflow-tools-and-running-nextflow-on-aws">Cloud
+          Companion: Choosing Workflow Tools And Running Nextflow On
+          AWS</h1>
+          <p><strong>Takeaway:</strong> Nextflow is not the only
+          workflow manager, but it is one of the strongest choices when
+          you need one pipeline to run on a laptop, HPC, and cloud with
+          containers, caching, and many samples.</p>
+          <p><a href="week-05-nextflow-nfcore-rnaseq.html">Week 5</a>
+          introduced Nextflow from the user side. <a
+          href="week-06-build-custom-nextflow-ont-pipeline.html">Week
+          6</a> walked through a small custom ONT pipeline. This guide
+          zooms out: when should a project use Nextflow, when should it
+          consider alternatives, and how can AWS runs stay cost-aware
+          from the first test?</p>
+          <p><a
+          href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/nextflow-aws-companion">Open
+          the AWS and workflow-manager resource pack on GitHub</a>.</p>
+          <h2 id="the-problem-workflow-tools-solve">The Problem Workflow
+          Tools Solve</h2>
+          <p>A bioinformatics workflow manager is useful when your
+          project stops being one command and becomes a dependency
+          graph:</p>
+          <pre class="mermaid"><code>flowchart LR
+  fastq[&quot;FASTQ files&quot;] --&gt; qc[&quot;QC&quot;]
+  fastq --&gt; align[&quot;Alignment or quantification&quot;]
+  align --&gt; counts[&quot;Counts or alignments&quot;]
+  qc --&gt; multiqc[&quot;Summary report&quot;]
+  counts --&gt; stats[&quot;Statistical analysis&quot;]
+  stats --&gt; report[&quot;Figures and interpretation&quot;]</code></pre>
+          <p>Without a workflow manager, people often lose track of:</p>
+          <table>
+          <thead>
+          <tr>
+          <th>Pain point</th>
+          <th>What breaks</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>manual reruns</td>
+          <td>one sample is processed differently from the others</td>
+          </tr>
+          <tr>
+          <td>hidden software versions</td>
+          <td>results change after an update</td>
+          </tr>
+          <tr>
+          <td>weak file naming</td>
+          <td>outputs cannot be traced back to inputs</td>
+          </tr>
+          <tr>
+          <td>partial failures</td>
+          <td>failed samples are silently skipped</td>
+          </tr>
+          <tr>
+          <td>cloud scaling</td>
+          <td>costs rise before anyone understands why</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>A good workflow tool makes the dataflow explicit. It does
+          not make the biology correct by itself.</p>
+          <h2 id="the-short-comparison">The Short Comparison</h2>
+          <table>
+          <colgroup>
+          <col style="width: 25%" />
+          <col style="width: 25%" />
+          <col style="width: 25%" />
+          <col style="width: 25%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Tool</th>
+          <th>Best fit</th>
+          <th>Strength</th>
+          <th>Watch out</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>Nextflow</td>
+          <td>omics pipelines that must run locally, on HPC, and on
+          cloud</td>
+          <td>channels, process isolation, strong container support,
+          nf-core ecosystem</td>
+          <td>DSL2 has a learning curve; cloud profiles need careful
+          setup</td>
+          </tr>
+          <tr>
+          <td>Snakemake</td>
+          <td>Python-friendly projects, file-based rules, academic lab
+          workflows</td>
+          <td>readable rule syntax, strong Conda integration, reports,
+          broad adoption</td>
+          <td>cloud/HPC behavior depends on executor profiles and
+          project discipline</td>
+          </tr>
+          <tr>
+          <td>WDL + Cromwell</td>
+          <td>clinical-style production workflows, Broad/GATK/Terra
+          ecosystems</td>
+          <td>explicit task inputs/outputs, strong genomics history</td>
+          <td>less beginner-friendly if you are not already in WDL/Terra
+          ecosystems</td>
+          </tr>
+          <tr>
+          <td>CWL</td>
+          <td>portable, standards-driven workflows across engines</td>
+          <td>open standard, vendor-neutral, strong emphasis on
+          interoperability</td>
+          <td>verbose for beginners; less common than Nextflow/Snakemake
+          in some wet-lab-facing teams</td>
+          </tr>
+          <tr>
+          <td>Bash scripts</td>
+          <td>tiny one-off checks</td>
+          <td>fast, direct, no framework overhead</td>
+          <td>fragile once samples, versions, and reruns matter</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>A practical selection rule:</p>
+          <pre class="text"><code>Use Bash to learn commands.
+Use Snakemake if your lab thinks in Python and file rules.
+Use WDL when the ecosystem already expects WDL.
+Use CWL when standards-based portability is the priority.
+Use Nextflow when portability, containers, cloud, and nf-core matter together.</code></pre>
+          <h3 id="choose-by-team-not-fashion">Choose By Team, Not
+          Fashion</h3>
+          <table>
+          <colgroup>
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Situation</th>
+          <th>Strong default</th>
+          <th>Reason</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>omics pipeline moving across laptop, HPC, and cloud</td>
+          <td>Nextflow</td>
+          <td>profiles, containers, executors, and nf-core</td>
+          </tr>
+          <tr>
+          <td>Python-heavy academic analysis with file-based rules</td>
+          <td>Snakemake</td>
+          <td>approachable rule syntax and Python integration</td>
+          </tr>
+          <tr>
+          <td>GATK/Terra-centered genomics</td>
+          <td>WDL/Cromwell</td>
+          <td>mature fit with that ecosystem</td>
+          </tr>
+          <tr>
+          <td>standards-first exchange across engines</td>
+          <td>CWL</td>
+          <td>specification-led portability</td>
+          </tr>
+          <tr>
+          <td>one small, linear personal task</td>
+          <td>Bash or Make</td>
+          <td>less machinery to maintain</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>The best workflow language is the one your collaborators
+          can test and maintain after the original author leaves.</p>
+          <h2 id="why-nextflow-often-wins-for-omics">Why Nextflow Often
+          Wins For Omics</h2>
+          <p>Nextflow is especially strong for omics because it
+          separates three things that beginners often mix together:</p>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Layer</th>
+          <th>Example</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>workflow logic</td>
+          <td>“FASTQ QC runs before alignment”</td>
+          </tr>
+          <tr>
+          <td>execution backend</td>
+          <td>local, Slurm, AWS Batch, Google Batch, Kubernetes</td>
+          </tr>
+          <tr>
+          <td>software environment</td>
+          <td>Docker, Singularity/Apptainer, Conda</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>That separation is the main advantage. You can write
+          pipeline logic once, then change where it runs by changing a
+          profile.</p>
+          <pre class="nextflow"><code>plugins {
+  id &#39;nf-amazon@3.10.0&#39;
+}
+
+profiles {
+  local {
+    process.executor = &#39;local&#39;
+  }
+
+  awsbatch {
+    process.executor = &#39;awsbatch&#39;
+    process.queue = &#39;nextflow-demo-queue&#39;
+    workDir = &#39;s3://your-bucket/nextflow-work/demo&#39;
+    aws.region = &#39;us-west-2&#39;
+    aws.batch.jobRole = &#39;YOUR_JOB_ROLE_ARN&#39;
+    aws.batch.executionRole = &#39;YOUR_EXECUTION_ROLE_ARN&#39;
+  }
+}</code></pre>
+          <p>Nextflow also caches completed tasks. If a run fails after
+          alignment, <code>-resume</code> can reuse completed work
+          instead of starting everything again. That is a scientific and
+          financial feature.</p>
+          <h2 id="how-nextflow-runs-on-aws">How Nextflow Runs On
+          AWS</h2>
+          <p>On AWS, Nextflow usually runs like this:</p>
+          <pre class="mermaid"><code>flowchart TB
+  user[&quot;Your laptop or small coordinator VM&quot;] --&gt; nf[&quot;Nextflow command&quot;]
+  nf --&gt; s3[&quot;S3 work directory&quot;]
+  nf --&gt; batch[&quot;AWS Batch job queue&quot;]
+  batch --&gt; ec2[&quot;EC2 or Fargate workers&quot;]
+  ec2 --&gt; tasks[&quot;Containerized pipeline tasks&quot;]
+  tasks --&gt; s3
+  s3 --&gt; results[&quot;Final results in S3&quot;]</code></pre>
+          <p>Plain English:</p>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Component</th>
+          <th>Role</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>Nextflow coordinator</td>
+          <td>reads the pipeline, submits tasks, tracks state</td>
+          </tr>
+          <tr>
+          <td>AWS Batch</td>
+          <td>schedules container jobs and provisions compute</td>
+          </tr>
+          <tr>
+          <td>EC2 or Fargate</td>
+          <td>runs the actual tools inside containers</td>
+          </tr>
+          <tr>
+          <td>S3</td>
+          <td>stores inputs, intermediate work files, and final
+          outputs</td>
+          </tr>
+          <tr>
+          <td>IAM</td>
+          <td>controls what the coordinator and workers are allowed to
+          access</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>The key point: AWS Batch does not make your pipeline free.
+          It helps run tasks at scale. You still pay for the AWS
+          resources used underneath, although AWS Batch itself has no
+          extra job-scheduling charge.</p>
+          <h2 id="cost-and-time-best-practices">Cost And Time Best
+          Practices</h2>
+          <p>Use these habits before running real data:</p>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Practice</th>
+          <th>Why it saves money or time</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>start with <code>-profile test</code> or one tiny
+          samplesheet</td>
+          <td>catches config errors before full data runs</td>
+          </tr>
+          <tr>
+          <td>use <code>-resume</code></td>
+          <td>avoids rerunning completed tasks</td>
+          </tr>
+          <tr>
+          <td>publish only final outputs</td>
+          <td>prevents huge intermediate uploads</td>
+          </tr>
+          <tr>
+          <td>use S3 lifecycle rules on work buckets</td>
+          <td>removes stale work files after a chosen retention
+          period</td>
+          </tr>
+          <tr>
+          <td>set process-specific CPUs and memory</td>
+          <td>avoids overpaying for small tasks and under-provisioning
+          large tasks</td>
+          </tr>
+          <tr>
+          <td>choose Spot only for retry-safe tasks</td>
+          <td>lowers cost but can be interrupted</td>
+          </tr>
+          <tr>
+          <td>inspect <code>trace.txt</code>,
+          <code>timeline.html</code>, and <code>report.html</code></td>
+          <td>shows slow, memory-heavy, or repeatedly retried steps</td>
+          </tr>
+          <tr>
+          <td>avoid giant shared references in every task when
+          possible</td>
+          <td>staging large files repeatedly wastes time</td>
+          </tr>
+          <tr>
+          <td>pin pipeline versions and containers</td>
+          <td>prevents unplanned changes</td>
+          </tr>
+          <tr>
+          <td>set budgets and alerts before the first cloud run</td>
+          <td>protects learners from surprise spending</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>For real projects, treat cost like a QC metric. A pipeline
+          that gives the right answer once but cannot be rerun
+          affordably is not production-ready.</p>
+          <h2 id="a-credit-bounded-aws-learning-path">A Credit-Bounded
+          AWS Learning Path</h2>
+          <p>As of October 2026, AWS describes its Free Tier for new
+          customers as credit-based, with up to USD 200 in credits over
+          6 months depending on plan and activities. AWS service access
+          differs by account plan, and cloud offers change. Check the
+          current AWS Free Tier page before assuming a tutorial run will
+          cost nothing.</p>
+          <p>Cost note:</p>
+          <pre class="text"><code>This is a tiny AWS Batch learning run designed to stay within new-account credits.
+It is not a guarantee of zero cost for every account.
+Set a budget alert first.
+Delete resources when finished.</code></pre>
+          <p>Best AWS service for real Nextflow execution: <strong>AWS
+          Batch</strong>. It is the native AWS executor documented by
+          Nextflow and is designed for containerized batch jobs.</p>
+          <h2 id="tutorial-local-first-aws-second">Tutorial: Local
+          First, AWS Second</h2>
+          <p>Start with a tiny local command:</p>
+          <div class="sourceCode" id="cb6"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the cloud demo folder.</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> nextflow-aws-demo</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> nextflow-aws-demo</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the smallest possible Nextflow script.</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> <span class="op">&gt;</span> main.nf <span class="op">&lt;&lt;&#39;EOF&#39;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">process SAY_HELLO {</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">  output:</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">  path &quot;hello.txt&quot;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="st">  script:</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;&quot;&quot;</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="st">  echo &quot;hello from Nextflow&quot; &gt; hello.txt</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="st">  &quot;&quot;&quot;</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="st">workflow {</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="st">  SAY_HELLO()</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="st">}</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="op">EOF</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Run locally first.</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> run main.nf</span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>executor &gt;  local
+[.../...] process &gt; SAY_HELLO [100%] 1 of 1</code></pre>
+          <p>Check the result:</p>
+          <div class="sourceCode" id="cb8"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> work/<span class="pp">*</span>/<span class="pp">*</span>/hello.txt</span></code></pre></div>
+          <p>Expected:</p>
+          <pre class="text"><code>hello from Nextflow</code></pre>
+          <p>Now add an AWS profile:</p>
+          <pre class="nextflow"><code>profiles {
+  awsbatch {
+    process.executor = &#39;awsbatch&#39;
+    process.queue = &#39;YOUR_AWS_BATCH_QUEUE&#39;
+    workDir = &#39;s3://YOUR_BUCKET/nextflow-work/hello&#39;
+    aws.region = &#39;us-west-2&#39;
+    process.container = &#39;YOUR_ECR_REPOSITORY_URI:2026.10&#39;
+  }
+}</code></pre>
+          <p>Save that as <code>nextflow.config</code>. Then run only
+          after AWS Batch, S3, IAM, and budget alerts are
+          configured:</p>
+          <div class="sourceCode" id="cb11"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> run main.nf <span class="at">-profile</span> awsbatch</span></code></pre></div>
+          <p>If you are learning, stop here. This tiny run proves the
+          coordinator can submit to AWS Batch, the worker can run a
+          container, and S3 can store work files. Do not test cloud
+          infrastructure for the first time with a full RNA-seq or
+          long-read dataset.</p>
+          <h2 id="create-a-bounded-learning-environment">Create A
+          Bounded Learning Environment</h2>
+          <p>The resource pack includes
+          <code>aws-batch-learning-stack.yml</code>. It creates an
+          encrypted S3 work bucket, a four-vCPU Fargate Spot
+          environment, a two-vCPU On-Demand fallback, a Batch queue, and
+          narrow task roles. You supply an existing VPC,
+          outbound-capable subnets, and a security group.</p>
+          <p>Before starting, confirm the coordinator computer has AWS
+          CLI v2, Docker with Buildx, and Nextflow:</p>
+          <div class="sourceCode" id="cb12"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> <span class="at">--version</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> buildx version</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> <span class="at">-version</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> configure</span></code></pre></div>
+          <p><code>aws configure</code> stores a local profile; it does
+          not put credentials in this repository. Prefer temporary
+          credentials or an approved identity flow for organizational
+          accounts.</p>
+          <div class="sourceCode" id="cb13"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Validate the template locally before creating resources.</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> cloudformation validate-template <span class="dt">\</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--template-body</span> file://content/resources/nextflow-aws-companion/aws-batch-learning-stack.yml</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Deploy after replacing the three networking values.</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> cloudformation deploy <span class="dt">\</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--stack-name</span> biofield-nextflow-learning <span class="dt">\</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">--template-file</span> content/resources/nextflow-aws-companion/aws-batch-learning-stack.yml <span class="dt">\</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--parameter-overrides</span> <span class="dt">\</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    VpcId=vpc-REPLACE <span class="dt">\</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    SubnetIds=<span class="st">&#39;subnet-REPLACE&#39;</span> <span class="dt">\</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    SecurityGroupIds=<span class="st">&#39;sg-REPLACE&#39;</span> <span class="dt">\</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--capabilities</span> CAPABILITY_IAM</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Retrieve the queue and bucket values for nextflow.config.</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> cloudformation describe-stacks <span class="dt">\</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">--stack-name</span> biofield-nextflow-learning <span class="dt">\</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">&#39;Stacks[0].Outputs&#39;</span> <span class="dt">\</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> table</span></code></pre></div>
+          <p>Expected: the stack reaches <code>CREATE_COMPLETE</code>
+          and prints <code>BucketName</code>,
+          <code>EcrRepositoryUri</code>, <code>JobQueueName</code>,
+          <code>JobRoleArn</code>, and <code>ExecutionRoleArn</code>.
+          Nextflow’s coordinator still needs permission to submit and
+          inspect Batch jobs; do not put permanent AWS keys in the
+          pipeline repository.</p>
+          <p>Build the supplied task image and push it to the new ECR
+          repository:</p>
+          <div class="sourceCode" id="cb14"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the repository URI from the stack output.</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="va">REPOSITORY_URI</span><span class="op">=</span><span class="va">$(</span><span class="ex">aws</span> cloudformation describe-stacks <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--stack-name</span> biofield-nextflow-learning <span class="dt">\</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--query</span> <span class="st">&quot;Stacks[0].Outputs[?OutputKey==&#39;EcrRepositoryUri&#39;].OutputValue&quot;</span> <span class="dt">\</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--output</span> text<span class="va">)</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Authenticate Docker to this account&#39;s ECR registry.</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> ecr get-login-password <span class="at">--region</span> us-west-2 <span class="dt">\</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">|</span> <span class="ex">docker</span> login <span class="at">--username</span> AWS <span class="at">--password-stdin</span> <span class="st">&quot;</span><span class="va">${REPOSITORY_URI</span><span class="op">%%</span>/<span class="pp">*</span><span class="va">}</span><span class="st">&quot;</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Build for the x86_64 Fargate environment and push the immutable tutorial tag.</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> buildx build <span class="dt">\</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">--platform</span> linux/amd64 <span class="dt">\</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">--file</span> content/resources/nextflow-aws-companion/Dockerfile.aws-batch-demo <span class="dt">\</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">--tag</span> <span class="st">&quot;</span><span class="va">${REPOSITORY_URI}</span><span class="st">:2026.10&quot;</span> <span class="dt">\</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">--push</span> <span class="dt">\</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>  content/resources/nextflow-aws-companion</span></code></pre></div>
+          <p>Why not use a plain Bash image? With an S3 work directory,
+          Nextflow’s AWS Batch tasks use the AWS CLI to stage task files
+          unless a different staging design such as Wave and Fusion is
+          configured. The supplied image therefore contains Bash,
+          <code>ps</code>, and a pinned AWS CLI v2.</p>
+          <p>Put the five stack outputs into
+          <code>nextflow-aws-demo.config</code>, then run the tiny
+          workflow. Its <code>2 GB</code> memory request is valid for a
+          one-vCPU Fargate task.</p>
+          <p>After the test, preserve any needed outputs and remove the
+          compute stack:</p>
+          <div class="sourceCode" id="cb15"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> cloudformation delete-stack <span class="at">--stack-name</span> biofield-nextflow-learning</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">aws</span> cloudformation wait stack-delete-complete <span class="at">--stack-name</span> biofield-nextflow-learning</span></code></pre></div>
+          <p>The work bucket is intentionally retained to prevent
+          accidental data loss. Inspect it before emptying or deleting
+          it.</p>
+          <h2 id="when-aws-batch-misbehaves">When AWS Batch
+          Misbehaves</h2>
+          <table>
+          <colgroup>
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Symptom</th>
+          <th>First diagnostic</th>
+          <th>Likely correction</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>job stays <code>RUNNABLE</code></td>
+          <td>Batch status reason and compute vCPU ceiling</td>
+          <td>verify subnet egress; inspect capacity; raise limits
+          carefully</td>
+          </tr>
+          <tr>
+          <td>S3 <code>AccessDenied</code></td>
+          <td>denied action and ARN</td>
+          <td>add only the missing bucket or object-prefix
+          permission</td>
+          </tr>
+          <tr>
+          <td>container cannot start</td>
+          <td>image URI, tag, and architecture</td>
+          <td>use a reachable image compatible with the compute
+          platform</td>
+          </tr>
+          <tr>
+          <td>Spot task disappears</td>
+          <td>Nextflow trace and Batch reason</td>
+          <td>rerun with <code>-resume</code>; use bounded retries or
+          On-Demand</td>
+          </tr>
+          <tr>
+          <td>bill grows after testing</td>
+          <td>S3 work prefix and active compute environments</td>
+          <td>apply lifecycle rules and delete the stack</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>The downloadable failure map contains the same checks for
+          use during an incident.</p>
+          <h2 id="aws-checklist-before-running-real-data">AWS Checklist
+          Before Running Real Data</h2>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Check</th>
+          <th>Beginner-friendly reason</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>AWS Budget alert exists</td>
+          <td>you get warned before credits disappear</td>
+          </tr>
+          <tr>
+          <td>S3 bucket is in the same region as Batch</td>
+          <td>avoids avoidable latency and transfer confusion</td>
+          </tr>
+          <tr>
+          <td><code>workDir</code> is an S3 path</td>
+          <td>AWS Batch workers need shared cloud storage</td>
+          </tr>
+          <tr>
+          <td>every process has a container</td>
+          <td>Batch workers should not depend on random local
+          software</td>
+          </tr>
+          <tr>
+          <td>queue name is correct</td>
+          <td>Nextflow submits tasks to that queue</td>
+          </tr>
+          <tr>
+          <td>IAM permissions are minimal but sufficient</td>
+          <td>workers need S3 access, not unlimited power</td>
+          </tr>
+          <tr>
+          <td>final <code>outdir</code> is separate from
+          <code>workDir</code></td>
+          <td>final results are easier to preserve and share</td>
+          </tr>
+          <tr>
+          <td>test run passes before real data</td>
+          <td>protects money and time</td>
+          </tr>
+          </tbody>
+          </table>
+          <h2 id="when-not-to-use-aws">When Not To Use AWS</h2>
+          <p>Use local or HPC instead when:</p>
+          <ul>
+          <li>the dataset fits comfortably on your laptop</li>
+          <li>you are still debugging commands</li>
+          <li>protected data cannot leave an approved environment</li>
+          <li>your institution already has a well-supported cluster</li>
+          <li>the cloud setup would take longer than the analysis</li>
+          </ul>
+          <p>Cloud is a scaling tool, not a badge of seriousness.</p>
+          <h2 id="what-to-save-from-every-workflow-run">What To Save
+          From Every Workflow Run</h2>
+          <p>For reproducibility, archive:</p>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Artifact</th>
+          <th>Why it matters</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td>exact command</td>
+          <td>proves how the run was launched</td>
+          </tr>
+          <tr>
+          <td>pipeline version or commit</td>
+          <td>identifies the code</td>
+          </tr>
+          <tr>
+          <td>params file</td>
+          <td>records scientific choices</td>
+          </tr>
+          <tr>
+          <td>samplesheet</td>
+          <td>links outputs to samples</td>
+          </tr>
+          <tr>
+          <td>software versions</td>
+          <td>catches hidden environment drift</td>
+          </tr>
+          <tr>
+          <td><code>trace.txt</code></td>
+          <td>resource and runtime audit</td>
+          </tr>
+          <tr>
+          <td><code>report.html</code></td>
+          <td>run summary</td>
+          </tr>
+          <tr>
+          <td>final MultiQC or QC reports</td>
+          <td>biological and technical interpretation</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>That habit carries into larger data platforms, where run
+          records, storage layout, and metadata become part of the
+          scientific audit trail.</p>
+          <h2 id="next-in-the-series">Next In The Series</h2>
+          <p>Return to <a
+          href="week-07-rnaseq-in-seven-minutes.html">Week 7</a> for
+          pipeline testing with nf-test, GitHub Actions, and Jenkins.
+          Continue with <a
+          href="week-08-differential-expression.html">Week 8</a> for big
+          bioinformatics data architecture on AWS: S3 storage zones,
+          Glue catalogs, Athena queries, Lambda event handlers, Step
+          Functions orchestration, AWS Batch, and Spot instances.</p>
+          <h2 id="credits-and-references">Credits and References</h2>
+          <ul>
+          <li>Nextflow documentation:
+          https://docs.seqera.io/nextflow/</li>
+          <li>Nextflow executors documentation:
+          https://www.nextflow.io/docs/latest/executor.html</li>
+          <li>Nextflow AWS documentation:
+          https://www.nextflow.io/docs/latest/aws.html</li>
+          <li>nf-core documentation: https://nf-co.re/</li>
+          <li>Snakemake documentation:
+          https://snakemake.readthedocs.io/</li>
+          <li>Common Workflow Language: https://www.commonwl.org/</li>
+          <li>WDL specification: https://github.com/openwdl/wdl</li>
+          <li>Cromwell documentation:
+          https://cromwell.readthedocs.io/</li>
+          <li>AWS Free Tier: https://aws.amazon.com/free/</li>
+          <li>AWS Batch pricing:
+          https://aws.amazon.com/batch/pricing/</li>
+          </ul>
+
+          <section class="article-engagement" aria-labelledby="article-engagement-title">
+            <div class="engagement-card">
+              <p class="eyebrow">Share and discuss</p>
+              <h2 id="article-engagement-title">Was this useful?</h2>
+              <p>
+                Share this guide with someone learning bioinformatics, suggest an edit on GitHub,
+                or leave a question below.
+              </p>
+              <div class="share-actions" data-share-title="Cloud
+Companion: Choosing Workflow Tools And Running Nextflow On AWS">
+                <button class="share-button" type="button" data-share-native>
+                  <i class="ri-share-forward-line" aria-hidden="true"></i>
+                  Share
+                </button>
+                <button class="share-button" type="button" data-copy-link>
+                  <i class="ri-link" aria-hidden="true"></i>
+                  Copy link
+                </button>
+                <a class="share-button" data-share-linkedin target="_blank" rel="noreferrer">
+                  <i class="ri-linkedin-box-line" aria-hidden="true"></i>
+                  LinkedIn
+                </a>
+                <a class="share-button" data-share-x target="_blank" rel="noreferrer">
+                  <i class="ri-twitter-x-line" aria-hidden="true"></i>
+                  X
+                </a>
+                <a class="share-button" data-edit-github target="_blank" rel="noreferrer">
+                  <i class="ri-git-pull-request-line" aria-hidden="true"></i>
+                  Suggest edit
+                </a>
+              </div>
+              <p class="share-status" aria-live="polite"></p>
+            </div>
+
+            <div class="discussion-note" aria-label="Comments and reactions">
+              <strong>Join the discussion on GitHub.</strong>
+              <p>
+                Ask a question, suggest an example, or share how you used this guide.
+                Comments are powered by GitHub Discussions through giscus.
+              </p>
+              <div class="discussion-actions">
+                <a class="share-button" data-discuss-question target="_blank" rel="noreferrer">
+                  <i class="ri-question-answer-line" aria-hidden="true"></i>
+                  Ask a question
+                </a>
+                <a class="share-button" data-discuss-general target="_blank" rel="noreferrer">
+                  <i class="ri-discuss-line" aria-hidden="true"></i>
+                  Browse discussions
+                </a>
+              </div>
+            </div>
+
+            <div class="giscus-panel" aria-label="Embedded comments">
+              <script
+                src="https://giscus.app/client.js"
+                data-repo="Caffeinated-Code/Bioinformatics_Field_Guide"
+                data-repo-id="R_kgDOTEbe8w"
+                data-category="General"
+                data-category-id="DIC_kwDOTEbe884DA22S"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="top"
+                data-theme="preferred_color_scheme"
+                data-lang="en"
+                data-loading="lazy"
+                crossorigin="anonymous"
+                async>
+              </script>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer__grid">
+        <div>
+          <strong>Bioinformatics Field Guide</strong>
+          <p>Practical bioinformatics guides with reproducible examples.</p>
+        </div>
+        <a href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide" target="_blank" rel="noreferrer">
+          GitHub repository <i class="ri-external-link-line" aria-hidden="true"></i>
+        </a>
+      </div>
+    </footer>
+
+    <script src="assets/site.js?v=20260709-engagement"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: false });
+      window.mermaid = mermaid;
+      window.dispatchEvent(new Event("mermaid-ready"));
+    </script>
+  </body>
+</html>

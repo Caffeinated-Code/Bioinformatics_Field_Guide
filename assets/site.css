@@ -653,6 +653,32 @@ h3 {
   background: var(--surface-strong);
 }
 
+.scenario-panel {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 0 1.5rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--brand) 7%, var(--surface));
+}
+
+.scenario-panel .eyebrow {
+  margin-bottom: 0.55rem;
+}
+
+.scenario-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.article-content input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.4rem;
+  accent-color: var(--brand);
+}
+
 .copy-code {
   position: absolute;
   top: 0.55rem;
@@ -845,7 +871,8 @@ h3 {
 
   .toc {
     position: static;
-    max-height: none;
+    max-height: 18rem;
+    overflow: auto;
   }
 
   .article-engagement {
