@@ -1,0 +1,48 @@
+pipeline {
+  agent { label 'bioinformatics-ci' }
+
+  options {
+    timestamps()
+    timeout(time: 15, unit: 'MINUTES')
+    disableConcurrentBuilds(abortPrevious: true)
+  }
+
+  stages {
+    stage('Environment') {
+      steps {
+        sh 'bash content/resources/week-07/scripts/run_fast_ci.sh versions'
+      }
+    }
+
+    stage('Lint') {
+      steps {
+        sh 'bash content/resources/week-07/scripts/run_fast_ci.sh lint'
+      }
+    }
+
+    stage('Pipeline contract') {
+      steps {
+        sh 'bash content/resources/week-07/scripts/run_fast_ci.sh contract'
+      }
+    }
+
+    stage('Tiny FASTQ sandbox') {
+      steps {
+        sh 'bash content/resources/week-07/scripts/run_fast_ci.sh sandbox'
+      }
+    }
+  }
+
+  post {
+    always {
+      script {
+        if (fileExists('build/test-results/nf-test.xml')) {
+          junit testResults: 'build/test-results/nf-test.xml'
+        }
+        if (fileExists('build/sandbox/read_qc.tsv')) {
+          archiveArtifacts artifacts: 'build/sandbox/**', fingerprint: true
+        }
+      }
+    }
+  }
+}

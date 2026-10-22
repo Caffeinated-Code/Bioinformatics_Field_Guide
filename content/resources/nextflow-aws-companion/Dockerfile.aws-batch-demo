@@ -1,0 +1,24 @@
+FROM ubuntu:24.04
+
+ARG AWS_CLI_VERSION=2.31.22
+ARG TARGETARCH
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+        ca-certificates curl procps unzip \
+    && case "${TARGETARCH}" in \
+         amd64) aws_arch=x86_64 ;; \
+         arm64) aws_arch=aarch64 ;; \
+         *) echo "Unsupported architecture: ${TARGETARCH}" >&2; exit 1 ;; \
+       esac \
+    && curl --fail --location \
+        "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}-${AWS_CLI_VERSION}.zip" \
+        --output /tmp/awscliv2.zip \
+    && unzip -q /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /var/lib/apt/lists/* /tmp/aws /tmp/awscliv2.zip \
+    && aws --version \
+    && bash --version | head -1 \
+    && ps --version | head -1
+
+CMD ["/bin/bash"]

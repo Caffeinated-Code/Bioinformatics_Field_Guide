@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Minimal cost-bounded AWS Batch Fargate environment for the Week 7 Nextflow lab
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  SecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+Resources:
+  DemoRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: true
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: IMMUTABLE
+  WorkBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: {SSEAlgorithm: AES256}
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireNextflowWork
+            Status: Enabled
+            Prefix: nextflow-work/
+            ExpirationInDays: 7
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  JobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: ecs-tasks.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: NextflowWorkBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ['s3:ListBucket', 's3:GetBucketLocation']
+                Resource: !GetAtt WorkBucket.Arn
+              - Effect: Allow
+                Action: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject']
+                Resource: !Sub '${WorkBucket.Arn}/*'
+  SpotCompute:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      Type: MANAGED
+      State: ENABLED
+      ComputeResources:
+        Type: FARGATE_SPOT
+        MaxvCpus: 4
+        Subnets: !Ref SubnetIds
+        SecurityGroupIds: !Ref SecurityGroupIds
+  OnDemandCompute:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      Type: MANAGED
+      State: ENABLED
+      ComputeResources:
+        Type: FARGATE
+        MaxvCpus: 2
+        Subnets: !Ref SubnetIds
+        SecurityGroupIds: !Ref SecurityGroupIds
+  JobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      Priority: 1
+      State: ENABLED
+      ComputeEnvironmentOrder:
+        - Order: 1
+          ComputeEnvironment: !Ref SpotCompute
+        - Order: 2
+          ComputeEnvironment: !Ref OnDemandCompute
+Outputs:
+  EcrRepositoryUri:
+    Value: !GetAtt DemoRepository.RepositoryUri
+  BucketName:
+    Value: !Ref WorkBucket
+  JobQueueName:
+    Value: !Ref JobQueue
+  JobRoleArn:
+    Value: !GetAtt JobRole.Arn
+  ExecutionRoleArn:
+    Value: !GetAtt TaskExecutionRole.Arn

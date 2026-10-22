@@ -36,7 +36,7 @@ workflow {
   def samplesheet = file(params.input, checkIfExists: true)
   def samplesheet_dir = samplesheet.parent
 
-  Channel
+  channel
     .fromPath(samplesheet)
     .splitCsv(header: true)
     .map { row ->
@@ -56,8 +56,8 @@ workflow {
     }
     .set { ch_reads }
 
-  ch_reference = Channel.value(file(params.reference, checkIfExists: true))
-  ch_annotation = Channel.value(file(params.annotation, checkIfExists: true))
+  ch_reference = channel.value(file(params.reference, checkIfExists: true))
+  ch_annotation = channel.value(file(params.annotation, checkIfExists: true))
 
   FASTQ_QC(ch_reads)
 
