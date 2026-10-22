@@ -2,27 +2,24 @@ process ALIGN_MINIMAP2 {
   tag "${meta.id}"
   label 'process_high'
 
-  publishDir "${params.outdir}/alignments/unsorted", mode: 'copy', enabled: params.save_intermediate_bam
+  publishDir "${params.outdir}/alignments", mode: 'copy'
 
-  container 'quay.io/biocontainers/minimap2:2.28--he4a0461_3'
+  container 'biofield/ont-isoforms:2026.10'
+  conda 'bioconda::minimap2=2.28 bioconda::samtools=1.21'
 
   input:
   tuple val(meta), path(fastq)
   path reference
-  val preset
-  val strand_mode
 
   output:
-  tuple val(meta), path("${meta.id}.sam"), emit: sam
+  tuple val(meta), path("${meta.id}.sorted.bam"), path("${meta.id}.sorted.bam.bai"), emit: bam
 
   script:
-  def extra = strand_mode == 'directRNA' ? '-uf' : ''
+  def extra = meta.protocol == 'directRNA' ? '-uf -k14' : ''
   """
-  minimap2 \
-    -ax ${preset} ${extra} \
-    -t ${task.cpus} \
-    ${reference} \
-    ${fastq} \
-    > ${meta.id}.sam
+  set -euo pipefail
+  minimap2 -ax splice ${extra} -t ${task.cpus} ${reference} ${fastq} \
+    | samtools sort -@ ${task.cpus} -o ${meta.id}.sorted.bam -
+  samtools index -@ ${task.cpus} ${meta.id}.sorted.bam
   """
 }

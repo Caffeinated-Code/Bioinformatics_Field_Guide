@@ -4,7 +4,8 @@ process ALIGNMENT_QC {
 
   publishDir "${params.outdir}/alignment_qc", mode: 'copy'
 
-  container 'quay.io/biocontainers/samtools:1.20--h50ea8bc_1'
+  container 'biofield/ont-isoforms:2026.10'
+  conda 'bioconda::samtools=1.21'
 
   input:
   tuple val(meta), path(bam), path(bai)

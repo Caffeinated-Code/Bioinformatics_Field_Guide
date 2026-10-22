@@ -4,7 +4,8 @@ process FASTQ_QC {
 
   publishDir "${params.outdir}/fastq_qc", mode: 'copy'
 
-  container 'quay.io/biocontainers/nanoplot:1.42.0--pyhdfd78af_0'
+  container 'biofield/ont-isoforms:2026.10'
+  conda 'bioconda::nanoplot=1.48.0'
 
   input:
   tuple val(meta), path(fastq)

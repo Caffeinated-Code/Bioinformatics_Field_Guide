@@ -4,22 +4,24 @@ nextflow.enable.dsl = 2
 
 include { FASTQ_QC } from './modules/local/fastq_qc'
 include { ALIGN_MINIMAP2 } from './modules/local/align_minimap2'
-include { SORT_INDEX_BAM } from './modules/local/sort_index_bam'
 include { ALIGNMENT_QC } from './modules/local/alignment_qc'
-include { ISOFORM_COLLAPSE_PLACEHOLDER } from './modules/local/isoform_collapse_placeholder'
+include { ISOQUANT_DISCOVERY } from './modules/local/isoquant_discovery'
+include { SQANTI3_ANNOTATION } from './modules/local/sqanti3_annotation'
 
 workflow {
   if (params.help) {
     log.info """
-    Custom ONT long-read teaching pipeline
+    Reproducible ONT isoform-discovery pipeline
 
     Required:
       --input       CSV with columns: sample,fastq,protocol,condition
       --reference   genome FASTA for minimap2
 
     Optional:
-      --annotation  GTF/GFF for downstream isoform comparison/collapse
+      --annotation  matching GTF annotation
       --outdir      output directory
+
+    Protocol values: directRNA, directcDNA, pcr-cDNA
 
     Example:
       nextflow run main.nf -profile docker -params-file params.local.yml -resume
@@ -27,14 +29,17 @@ workflow {
     return
   }
 
-  if (!params.reference) {
-    error "Missing --reference. Provide a genome FASTA path."
+  if (!params.input || !params.reference || !params.annotation) {
+    error "Provide --input, --reference, and --annotation. FASTA and GTF must use the same genome build."
   }
 
   Channel
     .fromPath(params.input, checkIfExists: true)
     .splitCsv(header: true)
     .map { row ->
+      if (!(row.protocol in ['directRNA', 'directcDNA', 'pcr-cDNA'])) {
+        error "Unsupported protocol '${row.protocol}' for sample '${row.sample}'."
+      }
       tuple(
         [ id: row.sample, protocol: row.protocol, condition: row.condition ],
         file(row.fastq, checkIfExists: true)
@@ -43,23 +48,12 @@ workflow {
     .set { ch_reads }
 
   ch_reference = Channel.value(file(params.reference, checkIfExists: true))
-  ch_annotation = params.annotation ? Channel.value(file(params.annotation, checkIfExists: true)) : Channel.value([])
+  ch_annotation = Channel.value(file(params.annotation, checkIfExists: true))
 
   FASTQ_QC(ch_reads)
 
-  ALIGN_MINIMAP2(
-    ch_reads,
-    ch_reference,
-    params.minimap2_preset,
-    params.strand_mode
-  )
-
-  SORT_INDEX_BAM(ALIGN_MINIMAP2.out.sam)
-
-  ALIGNMENT_QC(SORT_INDEX_BAM.out.bam)
-
-  ISOFORM_COLLAPSE_PLACEHOLDER(
-    SORT_INDEX_BAM.out.bam,
-    ch_annotation
-  )
+  ALIGN_MINIMAP2(ch_reads, ch_reference)
+  ALIGNMENT_QC(ALIGN_MINIMAP2.out.bam)
+  ISOQUANT_DISCOVERY(ALIGN_MINIMAP2.out.bam, ch_reference, ch_annotation)
+  SQANTI3_ANNOTATION(ISOQUANT_DISCOVERY.out.models, ch_annotation, ch_reference)
 }

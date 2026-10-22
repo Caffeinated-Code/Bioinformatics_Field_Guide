@@ -1,0 +1,11 @@
+name: ont-isoforms
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - nanoplot=1.48.0
+  - minimap2=2.28
+  - samtools=1.21
+  - isoquant=4.0.0
+  - sqanti3=6.0.2

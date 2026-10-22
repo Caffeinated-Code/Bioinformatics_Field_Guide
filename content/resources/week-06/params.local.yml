@@ -2,8 +2,3 @@ input: "samplesheet_ont.csv"
 outdir: "results/ont_custom"
 reference: "references/genome.fa"
 annotation: "references/genes.gtf"
-minimap2_preset: "splice"
-strand_mode: "unknown"
-save_intermediate_bam: true
-sqanti3_container: "REPLACE_WITH_TESTED_SQANTI3_CONTAINER_OR_LOCAL_ENV"
-sqanti3_extra_args: ""
