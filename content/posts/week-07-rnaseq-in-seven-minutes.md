@@ -1,170 +1,72 @@
 ---
-title: "Testing Nextflow Pipelines Scientists Can Trust"
-subtitle: "CI/CD with nf-test, GitHub Actions, Jenkins, and a three-read sandbox you can break on purpose"
+title: "CI/CD for Bioinformatics: Seven Tests That Keep Pipelines Honest"
+subtitle: "Learn pipeline testing by running a three-read Nextflow project, reading each result, and breaking one test on purpose"
 week: 7
 audience: ["beginner", "practitioner", "researcher", "industry"]
-reading_time: "10-minute guide + 5-minute lab"
-asset: "Tested CI project with nf-test, GitHub Actions, Jenkins, and a tiny FASTQ quality gate"
+reading_time: "15-minute guide + 5-minute lab"
+asset: "Reproducible Nextflow test project with seven test patterns, nf-test, GitHub Actions, and Jenkins"
 ---
 
-# Testing Nextflow Pipelines Scientists Can Trust
+# CI/CD for Bioinformatics: Seven Tests That Keep Pipelines Honest
 
 <div class="scenario-panel">
 <p class="eyebrow">A biotech release is due Friday</p>
-<p>A translational team reruns its Oxford Nanopore isoform pipeline before selecting targets for wet-lab validation. The workflow finishes successfully, but the transcript count has changed. Was the difference caused by new biology, a minimap2 parameter, an IsoQuant update, or a broken channel?</p>
-<p><strong>A green exit code cannot answer that question. A layered test suite can catch the software change before it reaches the analysis team.</strong></p>
+<p>A translational team reruns its Oxford Nanopore isoform pipeline before choosing targets for wet-lab validation. The workflow finishes, but the transcript count has changed. Did the biology change, or did a parameter, tool version, channel, or output format change?</p>
+<p><strong>A completed workflow cannot answer that question. Tests can show exactly which expectation changed before the result reaches the analysis team.</strong></p>
 </div>
 
-**Takeaway:** Test pipeline wiring quickly on every change, test real tools on tiny public data, and test biological expectations before releasing a result.
+**Takeaway:** A good bioinformatics test suite checks code, files, known answers, scientific rules, failure paths, and workflow wiring. CI simply runs those checks automatically whenever the code changes.
 
-[Week 5](week-05-nextflow-nfcore-rnaseq.html) explained how Nextflow runs work. [Week 6](week-06-build-custom-nextflow-ont-pipeline.html) built an ONT workflow from FASTQ through IsoQuant and SQANTI3. This guide adds the safety system around that pipeline.
+[Week 5](week-05-nextflow-nfcore-rnaseq.html) introduced Nextflow. [Week 6](week-06-build-custom-nextflow-ont-pipeline.html) built an ONT pipeline from FASTQ through IsoQuant and SQANTI3. This guide puts a safety system around that project.
 
-[Open the complete Week 7 project on GitHub](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-07). It contains the sandbox, shared test script, GitHub Actions workflow, and Jenkinsfile used below.
+[Open the complete Week 7 project on GitHub](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-07). Every command and expected result below comes from that repository.
 
-## CI/CD In Plain Language
+## First, Five Words You Need
 
-**Continuous integration (CI)** runs checks whenever code changes. It answers: *Can this change be merged without breaking behavior we already depend on?*
+| Term | Plain-language meaning |
+|---|---|
+| **fixture** | a small, known input used only for testing |
+| **test** | a question about what the code should do |
+| **assertion** | the exact condition that must be true |
+| **regression** | behavior that worked before but changed unexpectedly |
+| **test suite** | a group of tests run together |
 
-**Continuous delivery** prepares a tested release that a person can approve. For a bioinformatics pipeline, the release may contain a Git tag, container digest, checksums, documentation, and test reports.
+For example, this article's fixture is a FASTQ file with three reads. One assertion says the total number of bases must be `36`. If a code change produces `35`, the test fails and reports the mismatch.
 
-**Continuous deployment** automatically places every passing change into a live environment. That can suit a low-risk internal service. It is usually too aggressive for scientific interpretation or a controlled production pipeline without additional approval and validation.
+**Continuous integration (CI)** means running the test suite automatically for each proposed change. **Continuous delivery (CD)** means preparing a passing version for release. Continuous deployment goes one step further and releases automatically; scientific pipelines usually retain a human approval step.
 
 ```mermaid
 flowchart LR
-  change["Code change"] --> fast["Fast CI checks"]
-  fast --> decision{"All green?"}
-  decision -->|No| fix["Fix before merge"]
-  decision -->|Yes| merge["Merge reviewed code"]
-  merge --> release["Build release candidate"]
-  release --> approval["Scientific and operational approval"]
-  approval --> deploy["Release or deploy"]
+  change["Change code"] --> tests["Run known tests"]
+  tests --> result{"All expectations met?"}
+  result -->|No| fix["Investigate and fix"]
+  result -->|Yes| review["Review evidence"]
+  review --> release["Merge or release"]
 ```
 
-### The Useful Types Of CI
+The important idea is not the automation platform. It is the set of questions you ask before trusting a change.
 
-| CI type | Trigger | Good bioinformatics use |
-|---|---|---|
-| pull-request CI | every proposed change | lint code, run unit tests, test pipeline wiring |
-| branch CI | merge to `main` | repeat fast tests and save reports |
-| matrix CI | one change across several environments | test supported Nextflow, Java, or container profiles |
-| scheduled CI | nightly or weekly | run real tools on a small public truth set and detect dependency drift |
-| release CI | version tag | run the full validation set, build containers, create checksums and provenance |
-| deployment pipeline | approved release | promote the same immutable image into an approved environment |
+## A Five-Minute First Win
 
-For most research groups, start with pull-request CI and release CI. Add scheduled tests when dependencies or external references can change.
-
-## CI Is Not Scientific Validation
-
-These questions are related, but they are not interchangeable:
-
-| Question | Example check |
-|---|---|
-| Does the code parse? | `nextflow lint` reports no errors |
-| Are processes connected correctly? | the five Week 6 tasks run in the expected order |
-| Do commands run? | minimap2, IsoQuant, and SQANTI3 finish on tiny data |
-| Are output contracts intact? | BAM, GTF, classification, and report files exist and are non-empty |
-| Are results scientifically plausible? | known isoforms are recovered within reviewed tolerances |
-| Is the change acceptable? | a scientist reviews changed metrics, assumptions, and evidence |
-
-A pipeline can pass every software test and still use the wrong genome build, strandedness, contrast, or sample metadata. CI reduces preventable errors. It does not replace scientific review.
-
-## Build A Test Ladder
-
-Run cheap checks often. Reserve expensive tests for schedules and releases.
-
-```mermaid
-flowchart TB
-  lint["1. Syntax and lint<br/>seconds"] --> unit["2. Process tests<br/>seconds"]
-  unit --> stub["3. Stubbed workflow<br/>seconds"]
-  stub --> tiny["4. Tiny real run<br/>minutes"]
-  tiny --> science["5. Scientific regression<br/>minutes to hours"]
-  science --> scale["6. Performance and scale<br/>release only"]
-```
-
-| Layer | What should fail the test? | When to run |
-|---|---|---|
-| syntax and lint | invalid syntax, deprecated constructs, malformed configuration | every change |
-| process test | wrong command, input, output, or metadata contract | every change |
-| stubbed workflow | broken channel or missing dependency between processes | every change |
-| tiny integration | tool crash, missing container dependency, wrong published file | every change when fast; otherwise nightly |
-| scientific regression | unexpected truth-set metric or changed biological result | nightly and release |
-| performance regression | material increase in time, memory, retries, or cost | release and major tool updates |
-
-## Which Testing Tools Matter?
-
-`nf-test` is the most useful Nextflow-specific test framework, but it is not the whole toolbox.
-
-| Tool | Best use | Limitation |
-|---|---|---|
-| `nextflow lint` | syntax, configuration, and deprecated Nextflow constructs | does not execute the pipeline |
-| Nextflow `stub` and `-stub-run` | test dataflow without running heavy tools | fake outputs do not validate tool behavior |
-| `nf-test` | process, workflow, pipeline, snapshot, and trace assertions | requires a designed test fixture and compatible Java runtime |
-| Python `unittest` or `pytest` | inspect TSV, JSON, VCF, GTF, counts, and biological metrics | you must define meaningful assertions |
-| `pytest-workflow` | generic command and file-based workflow tests | less Nextflow-aware than `nf-test` |
-| Bash or Bats | small smoke tests and file contracts | becomes hard to maintain when assertions grow |
-| `nf-core pipelines lint` | enforce nf-core structure and community conventions | most useful for nf-core-style repositories |
-| Trivy or Grype | scan container images and dependencies | a clean scan does not prove analytical validity |
-
-This project uses `nextflow lint`, Nextflow stubs, `nf-test`, Bash, and Python's standard-library `unittest`. There is no single magic test runner.
-
-### Choose Test Data Deliberately
-
-| Fixture | Purpose |
-|---|---|
-| tiny positive case | proves the expected path works |
-| negative case | proves bad input or a failed QC gate is rejected |
-| boundary case | tests the exact edge of a threshold, such as three versus four reads |
-| public truth set | measures biological sensitivity, precision, or concordance |
-| malformed input | checks that the error is early and understandable |
-
-Never make a test dataset tiny by blindly taking the first few records. Preserve the feature that the test is meant to exercise: a splice junction, known isoform, variant, stranded read, low-quality sample, or metadata failure.
-
-## GitHub Actions Or Jenkins?
-
-Both tools automate commands. The main difference is where they run and who operates them.
-
-| | GitHub Actions | Jenkins |
-|---|---|---|
-| strongest fit | public or GitHub-hosted projects | private biotech/pharma networks, on-premises systems, and custom HPC access |
-| setup | fast; workflow YAML lives in `.github/workflows` | Jenkins controller, agents, plugins, credentials, and upgrades need ownership |
-| runners | GitHub-hosted or self-hosted | self-hosted agents you control |
-| pull-request experience | native checks and annotations | strong after source-control integration |
-| customization | marketplace actions and containers | highly customizable agents and plugins |
-| main risk | unsafe third-party actions or secrets on untrusted code | plugin drift, server maintenance, and inconsistent agents |
-
-**Our choice:** GitHub Actions is the public reference implementation. Jenkins runs the same checks for teams that need private infrastructure. The tests do not change with the CI platform.
-
-## Five-Minute Lab: Test Three FASTQ Reads
-
-The sandbox contains three reads: 8, 12, and 16 bases long. The workflow counts them, calculates length metrics, and applies a minimum-read gate.
-
-```mermaid
-flowchart LR
-  fastq["tiny.fastq<br/>3 reads"] --> summary["SUMMARIZE_READS<br/>count and lengths"]
-  summary --> metrics["read_qc.tsv"]
-  metrics --> gate["QUALITY_GATE<br/>require 3 reads"]
-  gate --> pass["quality_gate.tsv<br/>PASS"]
-```
-
-### 1. Run It
-
-You need Nextflow, Java, Bash, and Python 3. Docker is not required.
+You need Nextflow, Java, Bash, and Python 3. Docker and biological software are not required for this sandbox.
 
 ```bash
 # Download the public Field Guide repository.
 git clone https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide.git
 
-# Enter the repository.
+# Move into the downloaded project.
 cd Bioinformatics_Field_Guide
 
-# Run the tiny Nextflow pipeline and four scientific assertions.
+# Run the tiny pipeline, inspect its files, and test its results.
 bash content/resources/week-07/scripts/run_sandbox.sh
 ```
 
-The important output is short:
+The fixture contains reads of 12, 8, and 16 bases. Therefore, a correct result has 3 reads, 36 total bases, a mean length of 12, a minimum of 8, and a maximum of 16.
 
 ```text
-Ran 4 tests in 0.001s
+File contract: PASS (two non-empty TSV files with metric/value headers)
+
+Ran 6 tests in 0.002s
 OK
 
 QC summary
@@ -182,34 +84,202 @@ reads           3
 minimum_reads   3
 ```
 
-The Nextflow command proves that the processes run. The Python tests prove that the numbers and decision are correct.
+You have just run a Nextflow integration test, a file-contract test, and six Python assertions. Now let us separate those layers and see what each one protects.
 
-### 2. Break It On Purpose
+## The Seven Tests You Will Reuse
 
-Raise the minimum from three reads to four:
+```mermaid
+flowchart TB
+  lint["1. Lint<br/>Can Nextflow read the code?"] --> smoke["2. Smoke run<br/>Can the small workflow finish?"]
+  smoke --> files["3. File contract<br/>Were the promised files created?"]
+  files --> answer["4. Known answer<br/>Are exact values correct?"]
+  answer --> rule["5. Invariant<br/>Are scientific rules preserved?"]
+  rule --> negative["6. Expected failure<br/>Is bad input rejected?"]
+  negative --> wiring["7. Workflow contract<br/>Are all pipeline stages connected?"]
+```
+
+### 1. Lint Test: Catch Invalid Nextflow Early
+
+**Question:** Can Nextflow parse the scripts and configuration?
+
+**Use it:** On every edit and pull request. It is fast and catches syntax errors, deprecated constructs, and style problems before a workflow starts.
 
 ```bash
-# This is expected to fail because the FASTQ contains only three reads.
-nextflow run content/resources/week-07/sandbox/main.nf \
-  --reads content/resources/week-07/sandbox/data/tiny.fastq \
-  --min_reads 4 \
-  --outdir build/expected-failure \
-  -work-dir build/failure-work \
-  -ansi-log false
+# Examine every Nextflow file in the Week 6 project without running the pipeline.
+nextflow lint content/resources/week-06
 ```
 
-Expected message:
+Expected final output:
 
 ```text
-QC failed: expected at least 4 reads, observed 3.
-ERROR ~ Error executing process > 'QUALITY_GATE'
+Nextflow linting complete!
+8 files had no errors
 ```
 
-That red result is good. The gate rejected data that violated its contract. A useful test must fail when behavior is wrong.
+If it fails, Nextflow names the file and issue. Fix lint errors first; downstream tests are harder to interpret when the code cannot be parsed.
 
-## Test The Week 6 ONT Pipeline
+### 2. Smoke Test: Prove A Tiny Workflow Can Finish
 
-The real workflow has five processes. FASTQ QC and alignment can begin in parallel:
+**Question:** Can representative input travel through the main path without a process crashing?
+
+**Use it:** On every pull request when it takes seconds or a few minutes. Use a scheduled job if the smallest meaningful run is still expensive.
+
+The sandbox sends one FASTQ through two processes:
+
+```mermaid
+flowchart LR
+  fastq["tiny.fastq<br/>3 reads"] --> summary["SUMMARIZE_READS"]
+  summary --> metrics["read_qc.tsv"]
+  metrics --> gate["QUALITY_GATE"]
+  gate --> decision["quality_gate.tsv<br/>PASS"]
+```
+
+```bash
+# Run the small end-to-end path and all checks attached to it.
+bash content/resources/week-07/scripts/run_sandbox.sh
+```
+
+These lines prove both processes were scheduled and completed:
+
+```text
+Submitted process > SUMMARIZE_READS (tiny)
+Submitted process > QUALITY_GATE (1)
+```
+
+A smoke test answers "did it run?" It does not yet prove that every result is correct. That is why the next tests inspect the outputs.
+
+### 3. File-Contract Test: Check What The Pipeline Promised
+
+**Question:** Do the required outputs exist, contain data, and use the expected basic format?
+
+**Use it:** After every process that hands a file to another process, tool, or analyst. File contracts catch renamed outputs, empty files, and changed headers.
+
+This Bash loop checks both sandbox TSV files:
+
+```bash
+for result_file in read_qc.tsv quality_gate.tsv; do
+  result_path="${outdir}/${result_file}"
+
+  # -s is true only when the file exists and is not empty.
+  [[ -s "${result_path}" ]] || exit 1
+
+  # Confirm the first line is the two-column schema expected downstream.
+  [[ "$(head -n 1 "${result_path}")" == $'metric\tvalue' ]] || exit 1
+done
+```
+
+Expected output:
+
+```text
+File contract: PASS (two non-empty TSV files with metric/value headers)
+```
+
+For BAM, add `samtools quickcheck`; for VCF, use `bcftools view -h`; for JSON, parse it instead of searching raw text. A file merely existing is the weakest useful contract.
+
+### 4. Known-Answer Test: Check Exact Values
+
+**Question:** Does known input produce the known answer?
+
+**Use it:** For deterministic parsing, transformations, counts, coordinate conversion, filters, and calculations. Keep fixtures small enough that you can verify the expected answer by hand.
+
+Python's built-in `unittest` discovers functions whose names begin with `test_`. Each assertion states one expectation:
+
+```python
+def test_required_metrics(self) -> None:
+    # The output must contain exactly these five metric names.
+    self.assertSetEqual(
+        set(self.qc),
+        {"reads", "bases", "mean_length", "min_length", "max_length"},
+    )
+
+def test_read_count(self) -> None:
+    # The fixture was designed with exactly three reads.
+    self.assertEqual(int(self.qc["reads"]), 3)
+
+def test_total_bases(self) -> None:
+    # Read lengths 12 + 8 + 16 must total 36 bases.
+    self.assertEqual(int(self.qc["bases"]), 36)
+```
+
+Expected output:
+
+```text
+test_read_count (...) ... ok
+test_required_metrics (...) ... ok
+test_total_bases (...) ... ok
+```
+
+If `reads` becomes `4`, `assertEqual` reports the observed and expected values. That message is much more useful than discovering a changed table days later.
+
+### 5. Invariant Test: Protect A Rule, Not One Dataset
+
+**Question:** Is a relationship that should always hold still true?
+
+**Use it:** When exact outputs may vary across valid tool versions but scientific or mathematical rules must remain true.
+
+The mean read length must lie between the shortest and longest read:
+
+```python
+def test_lengths_are_ordered(self) -> None:
+    minimum = int(self.qc["min_length"])
+    mean = float(self.qc["mean_length"])
+    maximum = int(self.qc["max_length"])
+
+    # This relationship should hold for any non-empty FASTQ, not only our fixture.
+    self.assertLessEqual(minimum, mean)
+    self.assertLessEqual(mean, maximum)
+```
+
+The QC decision has its own invariant:
+
+```python
+def test_quality_gate(self) -> None:
+    self.assertEqual(self.gate["status"], "PASS")
+    self.assertGreaterEqual(
+        int(self.gate["reads"]), int(self.gate["minimum_reads"])
+    )
+```
+
+Expected output:
+
+```text
+test_lengths_are_ordered (...) ... ok
+test_quality_gate (...) ... ok
+```
+
+Useful bioinformatics invariants include `0 <= allele_frequency <= 1`, every sample in the samplesheet appears in the report, genomic intervals have `start < end`, and paired files share the same sample identifier.
+
+### 6. Expected-Failure Test: Make Sure Bad Input Stops
+
+**Question:** Does the pipeline fail for the right reason when an acceptance rule is violated?
+
+**Use it:** For malformed samplesheets, reference mismatches, missing metadata, unsupported protocols, empty results, and QC boundaries.
+
+Our positive test requires at least three reads. The negative test deliberately raises the requirement to four while keeping the same three-read fixture:
+
+```bash
+# This wrapper passes only when the inner Nextflow run fails as expected.
+bash content/resources/week-07/scripts/test_expected_failure.sh
+```
+
+Expected output:
+
+```text
+Expected-failure test: PASS
+QC failed: expected at least 4 reads, observed 3.
+```
+
+The wrapper checks two things: Nextflow returned a non-zero exit status, and the log contains the exact QC message. A random crash therefore cannot masquerade as the expected rejection.
+
+This is a particularly valuable trick: **test the test**. Run one example that should pass and a neighboring example that should fail.
+
+### 7. Workflow-Contract Test: Check A Larger Pipeline Cheaply
+
+**Question:** Are all processes, channels, metadata, and output names still connected?
+
+**Use it:** For multi-process Nextflow workflows where running every real bioinformatics tool on every edit would be slow or costly.
+
+The Week 6 ONT workflow has five processes. FASTQ QC and alignment can begin in parallel:
 
 ```text
 FASTQ -> FASTQ_QC
@@ -217,280 +287,204 @@ FASTQ -> FASTQ_QC
                         \-> ISOQUANT_DISCOVERY -> SQANTI3_ANNOTATION
 ```
 
-Running all real tools on every edit would download a multi-gigabyte image and waste CI time. Each process therefore has a lightweight `stub` that creates correctly named stand-in outputs.
-
-Here is the alignment stub:
-
-```nextflow
-stub:
-"""
-printf 'stub alignment for ${meta.id}\n' > ${meta.id}.sorted.bam
-printf 'stub index for ${meta.id}\n' > ${meta.id}.sorted.bam.bai
-"""
-```
-
-During a normal run, Nextflow executes the real minimap2 and samtools script. During `-stub-run`, it executes this block instead. Downstream processes receive the same filenames, so the dataflow can be tested without pretending the files contain real alignments.
-
-The `nf-test` specification supplies tiny inputs and checks the execution trace:
+Each process has a Nextflow `stub` that creates lightweight stand-in outputs. `nf-test` runs those stubs and inspects the execution trace:
 
 ```groovy
-nextflow_pipeline {
-  name "Week 6 ONT pipeline wiring"
-  script "main.nf"
+test("runs all five stages with lightweight stubs") {
+  options "-stub-run"                 // Skip expensive biological commands.
 
-  test("runs all five stages with lightweight stubs") {
-    options "-stub-run"
-
-    when {
-      params {
-        input = "$baseDir/tests/data/samplesheet.csv"
-        reference = "$baseDir/tests/data/tiny.fa"
-        annotation = "$baseDir/tests/data/tiny.gtf"
-        outdir = "$outputDir"
-      }
+  when {
+    params {
+      input = "$baseDir/tests/data/samplesheet.csv"
+      reference = "$baseDir/tests/data/tiny.fa"
+      annotation = "$baseDir/tests/data/tiny.gtf"
+      outdir = "$outputDir"
     }
+  }
 
-    then {
-      assert workflow.success
-      assert workflow.trace.tasks().size() == 5
-      assert workflow.trace.failed().size() == 0
-    }
+  then {
+    assert workflow.success                         // The workflow completed.
+    assert workflow.trace.tasks().size() == 5       // All five tasks ran.
+    assert workflow.trace.failed().size() == 0      // No task failed.
   }
 }
 ```
 
-Run it locally:
+Run the contract test:
 
 ```bash
-# Enter the Week 6 pipeline project.
-cd content/resources/week-06
-
-# Create the report folder. nf-test will write JUnit XML here.
-mkdir -p .test-results
-
-# Run in CI mode so missing snapshots or failures stop the build.
-nf-test test tests/pipeline.nf.test \
-  --ci \
-  --junitxml .test-results/nf-test.xml
+# Run only the Week 6 nf-test contract from the repository root.
+bash content/resources/week-07/scripts/run_fast_ci.sh contract
 ```
 
-Expected result:
+Expected output:
 
 ```text
-Week 6 ONT pipeline wiring
 Test 'runs all five stages with lightweight stubs' PASSED
 SUCCESS: Executed 1 tests
 ```
 
-If nf-test reports `Unsupported class file major version`, check `java -version`. This project is tested with Java 17 and nf-test 0.9.3. A much newer Java runtime can be ahead of nf-test's bundled Groovy version.
+This proves the workflow is wired correctly. It does **not** prove that minimap2 aligned reads correctly or that IsoQuant discovered valid isoforms. Stubs test plumbing, not biology.
 
-### What The Fast Test Proves
+## Add Scientific Regression Tests Next
 
-- the samplesheet is parsed
-- protocol metadata reaches alignment
-- all five tasks are connected
-- expected output names still exist
-- no task fails
+Software checks answer whether the pipeline behaves as designed. Scientific regression tests ask whether a reviewed biological result changed.
 
-It does **not** prove that minimap2 aligned reads correctly or that IsoQuant discovered valid isoforms.
+The [Week 6 public-data tutorial](week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project) produced 439 primary alignments, 30 transcript models, and 30 SQANTI3 classification rows with the pinned tool versions. A scheduled test could compare a new run with those versioned expectations.
 
-### Add Real Scientific Checks
+Good scientific checks might ask:
 
-Use the [public Week 6 IsoQuant dataset](week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project) for scheduled and release tests. With the pinned versions used in this guide, the verified run produced 439 primary alignments, 30 transcript models, and 30 SQANTI3 classification rows.
+- Were expected control transcripts recovered?
+- Did transcript or splice-junction counts move outside reviewed tolerances?
+- Do genome and annotation identifiers match?
+- Did a sample disappear between input and report?
+- Did structural-category proportions shift unexpectedly?
+- Did runtime or peak memory change materially?
 
-Treat those values as versioned expectations, not universal biological thresholds. If a reviewed tool update changes them, investigate the reason before updating the test.
+Do not blindly compare whole files byte for byte. Sort records, ignore timestamps and temporary paths, and use reviewed tolerances when exact equality has no scientific meaning. When an expected metric changes after a legitimate tool update, investigate and document why before changing the test.
 
-For a production isoform pipeline, consider checking:
+## Decide When Each Test Runs
 
-- expected control transcripts are recovered
-- transcript and junction counts remain within reviewed tolerances
-- genome build and annotation identifiers match
-- structural-category proportions do not shift unexpectedly
-- no sample disappears from the output
-- runtime, peak memory, retries, and output size stay within a budget
+Fast feedback and deep validation serve different moments:
 
-Prefer stable assertions. Sort records before comparing them, ignore timestamps and temporary paths, and use reviewed numeric tolerances when exact equality is not scientifically meaningful. Snapshot changes should be inspected, not accepted automatically.
+| Trigger | Run | Why |
+|---|---|---|
+| while coding | one focused test | get an answer in seconds |
+| every pull request | lint, unit, file, negative, and stub tests | block obvious regressions before merge |
+| nightly or weekly | real tools on small public or approved data | detect dependency, container, and reference drift |
+| release candidate | scientific metrics, provenance, performance, security | create evidence for a reviewed release |
 
-## One Command Everywhere
+Tiny data must still be meaningful. Preserve the feature the test is meant to exercise, such as a splice junction, known isoform, stranded read, low-quality sample, or metadata error. Taking the first ten records from a large file rarely creates a good fixture.
 
-The shared entry point keeps local and hosted CI aligned:
+## One Command On A Laptop Or In CI
+
+The complete fast suite has one entry point:
 
 ```bash
-# From the repository root: lint, run nf-test, run the sandbox, and validate results.
+# Print versions, lint Week 6, run nf-test, test the sandbox,
+# and confirm that the QC gate rejects its negative case.
 bash content/resources/week-07/scripts/run_fast_ci.sh
 ```
 
-The script supports smaller targets too:
+You can run one layer while developing:
 
 ```bash
 bash content/resources/week-07/scripts/run_fast_ci.sh lint
 bash content/resources/week-07/scripts/run_fast_ci.sh contract
 bash content/resources/week-07/scripts/run_fast_ci.sh sandbox
+bash content/resources/week-07/scripts/run_fast_ci.sh negative
 ```
 
-If this command fails locally, it should fail in GitHub Actions and Jenkins for the same reason.
+If the same script runs locally and in CI, debugging is simpler. The automation service should call your tests, not hide a second copy of them.
 
-## GitHub Actions: The Public Path
+## Automate It Without Learning Two Platforms
 
-The repository workflow runs when Week 6 or Week 7 pipeline files change in a pull request or on `main`; it can also be started manually. It installs pinned tool versions, runs the shared script, and keeps reports even when a test fails.
+Think of CI as another computer that checks out the repository and runs the command above from a clean environment.
+
+This project's GitHub Actions workflow installs pinned versions, runs the shared suite, and uploads the reports even if a test fails:
 
 ```yaml
-jobs:
-  fast-tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+steps:
+  - uses: actions/checkout@v7       # Download this commit onto the runner.
 
-    steps:
-      - uses: actions/checkout@v7
+  - uses: nf-core/setup-nextflow@v3 # Install the tested Nextflow and Java versions.
+    with:
+      version: '26.04.2'
+      java-version: '17'
+      java-distribution: 'temurin'
 
-      - uses: nf-core/setup-nextflow@v3
-        with:
-          version: '26.04.2'
-          java-version: '17'
-          java-distribution: 'temurin'
+  - uses: nf-core/setup-nf-test@v1  # Install the tested nf-test version.
+    with:
+      version: '0.9.3'
 
-      - uses: nf-core/setup-nf-test@v1
-        with:
-          version: '0.9.3'
+  - name: Run the shared fast CI suite
+    run: bash content/resources/week-07/scripts/run_fast_ci.sh
 
-      - name: Run the shared fast CI suite
-        run: bash content/resources/week-07/scripts/run_fast_ci.sh
-
-      - name: Keep reports and sandbox outputs
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: week-07-ci-results
-          path: |
-            build/test-results/
-            build/sandbox/
+  - name: Keep reports for debugging
+    if: always()                    # Upload evidence even after a failed test.
+    uses: actions/upload-artifact@v7
 ```
 
-[View the complete workflow](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/.github/workflows/week-07-pipeline-ci.yml), including path filters, read-only permissions, concurrency control, and manual execution.
+[Read the complete GitHub Actions workflow](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/.github/workflows/week-07-pipeline-ci.yml). It also uses read-only permissions, path filters, a timeout, and concurrency control.
 
-For a regulated or security-sensitive repository, pin external actions to reviewed commit SHAs, restrict permissions, protect the release environment, and review dependency updates.
+You do not need both GitHub Actions and Jenkins:
 
-## Jenkins: The Private Infrastructure Path
+| Start with | Choose it when | Tradeoff |
+|---|---|---|
+| **GitHub Actions** | the project is on GitHub and can use GitHub-hosted or self-hosted runners | fastest setup; review third-party actions and permissions |
+| **Jenkins** | jobs must reach an internal HPC cluster, private registry, or controlled network already served by Jenkins agents | highly flexible; your team owns the controller, plugins, credentials, and agents |
 
-Jenkins is useful when runners must reach an internal HPC cluster, private registry, controlled S3 bucket, or approved network that a public runner cannot access.
+Both should run the same repository script. The [complete Jenkinsfile](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-07/Jenkinsfile) is included for teams that need the private-infrastructure path.
 
-Store the pipeline definition as a `Jenkinsfile` in Git. Do not hide the build logic in a manually configured web form.
+Never put protected patient data or production credentials on a public runner. Use synthetic or public fixtures there; keep controlled datasets on approved infrastructure.
 
-```groovy
-pipeline {
-  agent { label 'bioinformatics-ci' }
+## Seven Small CI Tricks Worth Stealing
 
-  options {
-    timestamps()
-    timeout(time: 15, unit: 'MINUTES')
-    disableConcurrentBuilds(abortPrevious: true)
-  }
+1. **Start every Bash test script with `set -euo pipefail`.** It stops on failed commands, unset variables, and failed commands hidden inside pipes.
+2. **Print tool versions first.** A version difference often explains a local-versus-CI failure.
+3. **Use exact, helpful failure messages.** Tests should tell the next person what contract was violated.
+4. **Test both sides of a threshold.** A gate that passes good data but also accepts bad data is not working.
+5. **Save JUnit reports and small outputs.** They turn a red status into inspectable evidence.
+6. **Make output comparisons deterministic.** Sort unordered records and remove timestamps before comparing.
+7. **Pin releases, preserve digests.** Tags can move; container digests and checksums identify the exact artifact tested.
 
-  stages {
-    stage('Environment') {
-      steps { sh 'bash content/resources/week-07/scripts/run_fast_ci.sh versions' }
-    }
-    stage('Lint') {
-      steps { sh 'bash content/resources/week-07/scripts/run_fast_ci.sh lint' }
-    }
-    stage('Pipeline contract') {
-      steps { sh 'bash content/resources/week-07/scripts/run_fast_ci.sh contract' }
-    }
-    stage('Tiny FASTQ sandbox') {
-      steps { sh 'bash content/resources/week-07/scripts/run_fast_ci.sh sandbox' }
-    }
-  }
+## When Green Does Not Mean Correct Biology
 
-  post {
-    always {
-      script {
-        if (fileExists('build/test-results/nf-test.xml')) {
-          junit testResults: 'build/test-results/nf-test.xml'
-        }
-        if (fileExists('build/sandbox/read_qc.tsv')) {
-          archiveArtifacts artifacts: 'build/sandbox/**', fingerprint: true
-        }
-      }
-    }
-  }
-}
-```
+A pipeline can pass every software test and still use the wrong genome build, annotation release, strandedness, contrast, or sample metadata. CI reduces preventable software errors; it does not replace scientific review.
 
-The Jenkins agent labeled `bioinformatics-ci` needs Java 17, Nextflow 26.04.2, nf-test 0.9.3, Bash, and Python 3. The controller needs the Pipeline and JUnit plugins. Jenkins then records the test report and fingerprints the sandbox outputs for traceability.
-
-## A Practical Pharma Test Schedule
-
-| Stage | Data | Checks | Target time |
-|---|---|---|---|
-| every pull request | synthetic files committed to Git | lint, stubs, unit assertions, tiny sandbox | under 5 minutes |
-| nightly | small public or approved de-identified dataset | real tools, containers, reference access, scientific metrics | under 1 hour |
-| release candidate | locked validation set | concordance, reviewed tolerances, provenance, performance | project-specific |
-| production promotion | no new analysis | verify approved image digest, config, release notes, and sign-off | minutes |
-
-Keep protected data off public runners. Use synthetic or public fixtures for public CI. Run controlled datasets only on approved self-hosted infrastructure with least-privilege credentials, encryption, audit logging, and retention rules.
-
-CI/CD can support an organization's validation process. It does not create regulatory compliance by itself.
-
-## What Should A Release Preserve?
-
-Save enough evidence to reconstruct both the software and the decision:
+Before release, preserve enough evidence to reconstruct the analysis:
 
 - Git commit and release tag
-- exact Nextflow and nf-test versions
-- immutable container image digest, not only a mutable tag
-- parameter file and non-sensitive samplesheet schema
-- reference genome and annotation release identifiers plus checksums
-- JUnit, Nextflow trace, timeline, report, and DAG
-- scientific acceptance metrics and approved tolerances
-- changelog, reviewer, approval, and release date
-- software bill of materials and security scan where required
+- Nextflow, nf-test, and tool versions
+- immutable container digest
+- parameters and non-sensitive samplesheet schema
+- reference and annotation identifiers plus checksums
+- JUnit, trace, timeline, report, and DAG files
+- scientific acceptance metrics and reviewed tolerances
+- changelog, reviewer, and approval date
 
-Do not automatically publish biological conclusions because a build is green. Automate the evidence; keep accountable review at the decision point.
+Automate evidence collection. Keep an accountable human at the scientific decision point.
 
-## Diagnose A Red Build
+## If A Test Turns Red
 
-| Failure | First place to look | Typical fix |
+| Failure | Look here first | Likely action |
 |---|---|---|
-| lint fails | named file and line | correct syntax or replace a deprecated construct |
-| nf-test cannot find data | `baseDir`, samplesheet paths, staged fixtures | use repository-relative fixtures or explicit absolute test paths |
-| class-file version error | `java -version` | use the supported Java LTS version |
-| stub test fails | Nextflow trace and process outputs | repair channel shape, metadata, or output contract |
-| sandbox fails | `.command.err` in the Nextflow work directory | fix the command or its runtime dependency |
-| scientific assertion fails | metric diff and tool/reference versions | investigate first; update expectations only after review |
-| CI passes locally only | printed versions and runner architecture | make environments explicit and remove hidden local dependencies |
+| lint error | named file and line | fix syntax or a deprecated construct |
+| missing output | process log and `output:` declaration | repair the command, filename, or channel |
+| wrong exact value | assertion diff | inspect parsing, filtering, and fixture assumptions |
+| invariant failure | observed metrics | investigate impossible or unexpected relationships |
+| negative test passes | validation condition and exit code | make the pipeline reject invalid input |
+| nf-test contract fails | execution trace | repair channels, metadata, or process dependencies |
+| CI only fails remotely | printed versions and runner architecture | remove hidden local dependencies and pin environments |
+
+Do not immediately update an expected value to make CI green. First decide whether the code is wrong, the fixture is wrong, or the intended behavior truly changed.
 
 ## The Bookmark Checklist
 
-- [ ] Every change runs fast CI.
-- [ ] Tests can fail for a demonstrated reason.
-- [ ] Workflow wiring is tested separately from real tools.
-- [ ] Scientific assertions inspect content, not only file existence.
-- [ ] Tiny fixtures are public, synthetic, or approved.
-- [ ] Tool, Java, Nextflow, and container versions are explicit.
-- [ ] GitHub Actions and Jenkins call the same local command.
-- [ ] Slow truth-set tests run on a schedule and before release.
+- [ ] A new contributor can run the suite with one command.
+- [ ] Fast tests run on every pull request.
+- [ ] At least one known-answer test checks file content.
+- [ ] At least one invariant protects a general rule.
+- [ ] A negative test proves invalid input is rejected.
+- [ ] Workflow wiring is tested separately from real tool behavior.
+- [ ] Slow public-data tests run on a schedule and before release.
+- [ ] Tool, Java, Nextflow, reference, and container versions are explicit.
+- [ ] Reports and small failed-run artifacts are retained.
 - [ ] Changed scientific expectations require review.
-- [ ] Reports, provenance, and immutable artifacts are retained.
 
 ## Continue The Infrastructure Path
 
-The earlier workflow-manager and AWS material is preserved as a [cloud execution companion](nextflow-workflow-tools-aws-companion.html). Week 8 will extend this infrastructure path into storage, metadata, orchestration, and batch-compute architecture for large biological datasets on AWS.
+The workflow-manager and AWS material is preserved as a [cloud execution companion](nextflow-workflow-tools-aws-companion.html). Week 8 extends this infrastructure path into storage, metadata, orchestration, and batch-compute architecture for large biological datasets on AWS.
 
 ## Credits And References
 
-- Forer L, Schönherr S. [Improving the reliability, quality, and maintainability of bioinformatics pipelines with nf-test](https://doi.org/10.1093/gigascience/giaf130). *GigaScience*. 2025.
+- Forer L, Schoenherr S. [Improving the reliability, quality, and maintainability of bioinformatics pipelines with nf-test](https://doi.org/10.1093/gigascience/giaf130). *GigaScience*. 2025.
 - Di Tommaso P, Chatzou M, Floden EW, et al. [Nextflow enables reproducible computational workflows](https://doi.org/10.1038/nbt.3820). *Nature Biotechnology*. 2017.
 - [nf-test documentation](https://www.nf-test.com/docs/)
 - [Nextflow process stubs](https://www.nextflow.io/docs/latest/process.html#stub)
 - [Nextflow CLI and lint documentation](https://www.nextflow.io/docs/latest/reference/cli.html)
+- [Python `unittest` documentation](https://docs.python.org/3/library/unittest.html)
 - [GitHub Actions documentation](https://docs.github.com/en/actions)
-- [nf-core setup-nextflow action](https://github.com/nf-core/setup-nextflow)
-- [nf-core setup-nf-test action](https://github.com/nf-core/setup-nf-test)
-- [GitHub checkout action](https://github.com/actions/checkout)
-- [GitHub upload-artifact action](https://github.com/actions/upload-artifact)
+- [GitHub Actions security guidance](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions)
 - [Jenkins Pipeline documentation](https://www.jenkins.io/doc/book/pipeline/)
-- [Jenkins test and artifact recording](https://www.jenkins.io/doc/pipeline/tour/tests-and-artifacts/)
 - [nf-core pipeline linting](https://nf-co.re/docs/nf-core-tools/cli/pipelines/lint)
-- [pytest-workflow documentation](https://pytest-workflow.readthedocs.io/en/stable/)
-- [Trivy documentation](https://trivy.dev/latest/)
-- [Grype documentation](https://oss.anchore.com/docs/overview/)

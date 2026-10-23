@@ -42,19 +42,26 @@ test_sandbox() {
   bash "${resource_dir}/scripts/run_sandbox.sh" "${repo_root}/build/sandbox"
 }
 
+test_expected_failure() {
+  bash "${resource_dir}/scripts/test_expected_failure.sh" \
+    "${repo_root}/build/expected-failure"
+}
+
 case "${target}" in
   versions) show_versions ;;
   lint) lint_pipeline ;;
   contract) test_pipeline_contract ;;
   sandbox) test_sandbox ;;
+  negative) test_expected_failure ;;
   all)
     show_versions
     lint_pipeline
     test_pipeline_contract
     test_sandbox
+    test_expected_failure
     ;;
   *)
-    printf 'Usage: %s [versions|lint|contract|sandbox|all]\n' "$0" >&2
+    printf 'Usage: %s [versions|lint|contract|sandbox|negative|all]\n' "$0" >&2
     exit 2
     ;;
 esac

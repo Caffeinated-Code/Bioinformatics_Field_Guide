@@ -21,6 +21,16 @@ class TestTinyFastqQualityGate(unittest.TestCase):
         cls.qc = read_metrics(RESULTS / "read_qc.tsv")
         cls.gate = read_metrics(RESULTS / "quality_gate.tsv")
 
+    def test_required_metrics(self) -> None:
+        self.assertSetEqual(
+            set(self.qc),
+            {"reads", "bases", "mean_length", "min_length", "max_length"},
+        )
+        self.assertSetEqual(
+            set(self.gate),
+            {"status", "reads", "minimum_reads"},
+        )
+
     def test_read_count(self) -> None:
         self.assertEqual(int(self.qc["reads"]), 3)
 
@@ -31,6 +41,13 @@ class TestTinyFastqQualityGate(unittest.TestCase):
         self.assertEqual(float(self.qc["mean_length"]), 12.0)
         self.assertEqual(int(self.qc["min_length"]), 8)
         self.assertEqual(int(self.qc["max_length"]), 16)
+
+    def test_lengths_are_ordered(self) -> None:
+        minimum = int(self.qc["min_length"])
+        mean = float(self.qc["mean_length"])
+        maximum = int(self.qc["max_length"])
+        self.assertLessEqual(minimum, mean)
+        self.assertLessEqual(mean, maximum)
 
     def test_quality_gate(self) -> None:
         self.assertEqual(self.gate["status"], "PASS")

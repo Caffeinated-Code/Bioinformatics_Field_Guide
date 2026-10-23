@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="CI/CD with nf-test, GitHub Actions, Jenkins, and a
-three-read sandbox you can break on purpose"
+      content="Learn pipeline testing by running a three-read Nextflow
+project, reading each result, and breaking one test on purpose"
     />
-    <meta property="og:title" content="Testing Nextflow Pipelines
-Scientists Can Trust" />
+    <meta property="og:title" content="CI/CD for Bioinformatics: Seven
+Tests That Keep Pipelines Honest" />
     <meta
       property="og:description"
-      content="CI/CD with nf-test, GitHub Actions, Jenkins, and a
-three-read sandbox you can break on purpose"
+      content="Learn pipeline testing by running a three-read Nextflow
+project, reading each result, and breaking one test on purpose"
     />
     <meta property="og:type" content="article" />
-    <title>Testing Nextflow Pipelines Scientists Can
-Trust | Bioinformatics Field Guide</title>
+    <title>CI/CD for Bioinformatics: Seven Tests That Keep Pipelines
+Honest | Bioinformatics Field Guide</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -57,12 +57,13 @@ Trust | Bioinformatics Field Guide</title>
         <div class="container article-hero__grid">
           <div>
             <a class="back-link" href="index.html"><i class="ri-arrow-left-line" aria-hidden="true"></i> Field Guide home</a>
-            <p class="eyebrow">Week 7 · 10-minute guide + 5-minute
+            <p class="eyebrow">Week 7 · 15-minute guide + 5-minute
 lab</p>
-            <h1>Testing Nextflow Pipelines Scientists Can Trust</h1>
-                        <p class="article-hero__subtitle">CI/CD with
-nf-test, GitHub Actions, Jenkins, and a three-read sandbox you can break
-on purpose</p>
+            <h1>CI/CD for Bioinformatics: Seven Tests That Keep
+Pipelines Honest</h1>
+                        <p class="article-hero__subtitle">Learn pipeline
+testing by running a three-read Nextflow project, reading each result,
+and breaking one test on purpose</p>
                         <div class="article-meta">
               <span><i class="ri-user-smile-line" aria-hidden="true"></i> Beginner friendly</span>
               <span><i class="ri-terminal-box-line" aria-hidden="true"></i> Tested commands</span>
@@ -71,8 +72,8 @@ on purpose</p>
           </div>
           <aside class="article-card">
             <span class="article-card__label">Original asset</span>
-            <p>Tested CI project with nf-test, GitHub Actions, Jenkins,
-and a tiny FASTQ quality gate</p>
+            <p>Reproducible Nextflow test project with seven test
+patterns, nf-test, GitHub Actions, and Jenkins</p>
             <a href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide" target="_blank" rel="noreferrer">
               View repository <i class="ri-external-link-line" aria-hidden="true"></i>
             </a>
@@ -84,47 +85,40 @@ and a tiny FASTQ quality gate</p>
         <aside class="toc" aria-label="Table of contents">
           <p class="toc__title">On this page</p>
           <ul>
-          <li><a href="#testing-nextflow-pipelines-scientists-can-trust"
-          id="toc-testing-nextflow-pipelines-scientists-can-trust">Testing
-          Nextflow Pipelines Scientists Can Trust</a>
+          <li><a
+          href="#cicd-for-bioinformatics-seven-tests-that-keep-pipelines-honest"
+          id="toc-cicd-for-bioinformatics-seven-tests-that-keep-pipelines-honest">CI/CD
+          for Bioinformatics: Seven Tests That Keep Pipelines Honest</a>
           <ul>
-          <li><a href="#cicd-in-plain-language"
-          id="toc-cicd-in-plain-language">CI/CD In Plain
-          Language</a></li>
-          <li><a href="#ci-is-not-scientific-validation"
-          id="toc-ci-is-not-scientific-validation">CI Is Not Scientific
-          Validation</a></li>
-          <li><a href="#build-a-test-ladder"
-          id="toc-build-a-test-ladder">Build A Test Ladder</a></li>
-          <li><a href="#which-testing-tools-matter"
-          id="toc-which-testing-tools-matter">Which Testing Tools
-          Matter?</a></li>
-          <li><a href="#github-actions-or-jenkins"
-          id="toc-github-actions-or-jenkins">GitHub Actions Or
-          Jenkins?</a></li>
-          <li><a href="#five-minute-lab-test-three-fastq-reads"
-          id="toc-five-minute-lab-test-three-fastq-reads">Five-Minute
-          Lab: Test Three FASTQ Reads</a></li>
-          <li><a href="#test-the-week-6-ont-pipeline"
-          id="toc-test-the-week-6-ont-pipeline">Test The Week 6 ONT
-          Pipeline</a></li>
-          <li><a href="#one-command-everywhere"
-          id="toc-one-command-everywhere">One Command
-          Everywhere</a></li>
-          <li><a href="#github-actions-the-public-path"
-          id="toc-github-actions-the-public-path">GitHub Actions: The
-          Public Path</a></li>
-          <li><a href="#jenkins-the-private-infrastructure-path"
-          id="toc-jenkins-the-private-infrastructure-path">Jenkins: The
-          Private Infrastructure Path</a></li>
-          <li><a href="#a-practical-pharma-test-schedule"
-          id="toc-a-practical-pharma-test-schedule">A Practical Pharma
-          Test Schedule</a></li>
-          <li><a href="#what-should-a-release-preserve"
-          id="toc-what-should-a-release-preserve">What Should A Release
-          Preserve?</a></li>
-          <li><a href="#diagnose-a-red-build"
-          id="toc-diagnose-a-red-build">Diagnose A Red Build</a></li>
+          <li><a href="#first-five-words-you-need"
+          id="toc-first-five-words-you-need">First, Five Words You
+          Need</a></li>
+          <li><a href="#a-five-minute-first-win"
+          id="toc-a-five-minute-first-win">A Five-Minute First
+          Win</a></li>
+          <li><a href="#the-seven-tests-you-will-reuse"
+          id="toc-the-seven-tests-you-will-reuse">The Seven Tests You
+          Will Reuse</a></li>
+          <li><a href="#add-scientific-regression-tests-next"
+          id="toc-add-scientific-regression-tests-next">Add Scientific
+          Regression Tests Next</a></li>
+          <li><a href="#decide-when-each-test-runs"
+          id="toc-decide-when-each-test-runs">Decide When Each Test
+          Runs</a></li>
+          <li><a href="#one-command-on-a-laptop-or-in-ci"
+          id="toc-one-command-on-a-laptop-or-in-ci">One Command On A
+          Laptop Or In CI</a></li>
+          <li><a href="#automate-it-without-learning-two-platforms"
+          id="toc-automate-it-without-learning-two-platforms">Automate
+          It Without Learning Two Platforms</a></li>
+          <li><a href="#seven-small-ci-tricks-worth-stealing"
+          id="toc-seven-small-ci-tricks-worth-stealing">Seven Small CI
+          Tricks Worth Stealing</a></li>
+          <li><a href="#when-green-does-not-mean-correct-biology"
+          id="toc-when-green-does-not-mean-correct-biology">When Green
+          Does Not Mean Correct Biology</a></li>
+          <li><a href="#if-a-test-turns-red"
+          id="toc-if-a-test-turns-red">If A Test Turns Red</a></li>
           <li><a href="#the-bookmark-checklist"
           id="toc-the-bookmark-checklist">The Bookmark
           Checklist</a></li>
@@ -140,415 +134,112 @@ and a tiny FASTQ quality gate</p>
 
         <article class="article-content">
           <h1
-          id="testing-nextflow-pipelines-scientists-can-trust">Testing
-          Nextflow Pipelines Scientists Can Trust</h1>
+          id="cicd-for-bioinformatics-seven-tests-that-keep-pipelines-honest">CI/CD
+          for Bioinformatics: Seven Tests That Keep Pipelines
+          Honest</h1>
           <div class="scenario-panel">
           <p class="eyebrow">
           A biotech release is due Friday
           </p>
           <p>
           A translational team reruns its Oxford Nanopore isoform
-          pipeline before selecting targets for wet-lab validation. The
-          workflow finishes successfully, but the transcript count has
-          changed. Was the difference caused by new biology, a minimap2
-          parameter, an IsoQuant update, or a broken channel?
+          pipeline before choosing targets for wet-lab validation. The
+          workflow finishes, but the transcript count has changed. Did
+          the biology change, or did a parameter, tool version, channel,
+          or output format change?
           </p>
           <p>
-          <strong>A green exit code cannot answer that question. A
-          layered test suite can catch the software change before it
-          reaches the analysis team.</strong>
+          <strong>A completed workflow cannot answer that question.
+          Tests can show exactly which expectation changed before the
+          result reaches the analysis team.</strong>
           </p>
           </div>
-          <p><strong>Takeaway:</strong> Test pipeline wiring quickly on
-          every change, test real tools on tiny public data, and test
-          biological expectations before releasing a result.</p>
+          <p><strong>Takeaway:</strong> A good bioinformatics test suite
+          checks code, files, known answers, scientific rules, failure
+          paths, and workflow wiring. CI simply runs those checks
+          automatically whenever the code changes.</p>
           <p><a href="week-05-nextflow-nfcore-rnaseq.html">Week 5</a>
-          explained how Nextflow runs work. <a
+          introduced Nextflow. <a
           href="week-06-build-custom-nextflow-ont-pipeline.html">Week
-          6</a> built an ONT workflow from FASTQ through IsoQuant and
-          SQANTI3. This guide adds the safety system around that
-          pipeline.</p>
+          6</a> built an ONT pipeline from FASTQ through IsoQuant and
+          SQANTI3. This guide puts a safety system around that
+          project.</p>
           <p><a
           href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/tree/main/content/resources/week-07">Open
-          the complete Week 7 project on GitHub</a>. It contains the
-          sandbox, shared test script, GitHub Actions workflow, and
-          Jenkinsfile used below.</p>
-          <h2 id="cicd-in-plain-language">CI/CD In Plain Language</h2>
-          <p><strong>Continuous integration (CI)</strong> runs checks
-          whenever code changes. It answers: <em>Can this change be
-          merged without breaking behavior we already depend
-          on?</em></p>
-          <p><strong>Continuous delivery</strong> prepares a tested
-          release that a person can approve. For a bioinformatics
-          pipeline, the release may contain a Git tag, container digest,
-          checksums, documentation, and test reports.</p>
-          <p><strong>Continuous deployment</strong> automatically places
-          every passing change into a live environment. That can suit a
-          low-risk internal service. It is usually too aggressive for
-          scientific interpretation or a controlled production pipeline
-          without additional approval and validation.</p>
+          the complete Week 7 project on GitHub</a>. Every command and
+          expected result below comes from that repository.</p>
+          <h2 id="first-five-words-you-need">First, Five Words You
+          Need</h2>
+          <table>
+          <colgroup>
+          <col style="width: 50%" />
+          <col style="width: 50%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Term</th>
+          <th>Plain-language meaning</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td><strong>fixture</strong></td>
+          <td>a small, known input used only for testing</td>
+          </tr>
+          <tr>
+          <td><strong>test</strong></td>
+          <td>a question about what the code should do</td>
+          </tr>
+          <tr>
+          <td><strong>assertion</strong></td>
+          <td>the exact condition that must be true</td>
+          </tr>
+          <tr>
+          <td><strong>regression</strong></td>
+          <td>behavior that worked before but changed unexpectedly</td>
+          </tr>
+          <tr>
+          <td><strong>test suite</strong></td>
+          <td>a group of tests run together</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>For example, this article’s fixture is a FASTQ file with
+          three reads. One assertion says the total number of bases must
+          be <code>36</code>. If a code change produces <code>35</code>,
+          the test fails and reports the mismatch.</p>
+          <p><strong>Continuous integration (CI)</strong> means running
+          the test suite automatically for each proposed change.
+          <strong>Continuous delivery (CD)</strong> means preparing a
+          passing version for release. Continuous deployment goes one
+          step further and releases automatically; scientific pipelines
+          usually retain a human approval step.</p>
           <pre class="mermaid"><code>flowchart LR
-  change[&quot;Code change&quot;] --&gt; fast[&quot;Fast CI checks&quot;]
-  fast --&gt; decision{&quot;All green?&quot;}
-  decision --&gt;|No| fix[&quot;Fix before merge&quot;]
-  decision --&gt;|Yes| merge[&quot;Merge reviewed code&quot;]
-  merge --&gt; release[&quot;Build release candidate&quot;]
-  release --&gt; approval[&quot;Scientific and operational approval&quot;]
-  approval --&gt; deploy[&quot;Release or deploy&quot;]</code></pre>
-          <h3 id="the-useful-types-of-ci">The Useful Types Of CI</h3>
-          <table>
-          <colgroup>
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th>CI type</th>
-          <th>Trigger</th>
-          <th>Good bioinformatics use</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td>pull-request CI</td>
-          <td>every proposed change</td>
-          <td>lint code, run unit tests, test pipeline wiring</td>
-          </tr>
-          <tr>
-          <td>branch CI</td>
-          <td>merge to <code>main</code></td>
-          <td>repeat fast tests and save reports</td>
-          </tr>
-          <tr>
-          <td>matrix CI</td>
-          <td>one change across several environments</td>
-          <td>test supported Nextflow, Java, or container profiles</td>
-          </tr>
-          <tr>
-          <td>scheduled CI</td>
-          <td>nightly or weekly</td>
-          <td>run real tools on a small public truth set and detect
-          dependency drift</td>
-          </tr>
-          <tr>
-          <td>release CI</td>
-          <td>version tag</td>
-          <td>run the full validation set, build containers, create
-          checksums and provenance</td>
-          </tr>
-          <tr>
-          <td>deployment pipeline</td>
-          <td>approved release</td>
-          <td>promote the same immutable image into an approved
-          environment</td>
-          </tr>
-          </tbody>
-          </table>
-          <p>For most research groups, start with pull-request CI and
-          release CI. Add scheduled tests when dependencies or external
-          references can change.</p>
-          <h2 id="ci-is-not-scientific-validation">CI Is Not Scientific
-          Validation</h2>
-          <p>These questions are related, but they are not
-          interchangeable:</p>
-          <table>
-          <colgroup>
-          <col style="width: 50%" />
-          <col style="width: 50%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th>Question</th>
-          <th>Example check</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td>Does the code parse?</td>
-          <td><code>nextflow lint</code> reports no errors</td>
-          </tr>
-          <tr>
-          <td>Are processes connected correctly?</td>
-          <td>the five Week 6 tasks run in the expected order</td>
-          </tr>
-          <tr>
-          <td>Do commands run?</td>
-          <td>minimap2, IsoQuant, and SQANTI3 finish on tiny data</td>
-          </tr>
-          <tr>
-          <td>Are output contracts intact?</td>
-          <td>BAM, GTF, classification, and report files exist and are
-          non-empty</td>
-          </tr>
-          <tr>
-          <td>Are results scientifically plausible?</td>
-          <td>known isoforms are recovered within reviewed
-          tolerances</td>
-          </tr>
-          <tr>
-          <td>Is the change acceptable?</td>
-          <td>a scientist reviews changed metrics, assumptions, and
-          evidence</td>
-          </tr>
-          </tbody>
-          </table>
-          <p>A pipeline can pass every software test and still use the
-          wrong genome build, strandedness, contrast, or sample
-          metadata. CI reduces preventable errors. It does not replace
-          scientific review.</p>
-          <h2 id="build-a-test-ladder">Build A Test Ladder</h2>
-          <p>Run cheap checks often. Reserve expensive tests for
-          schedules and releases.</p>
-          <pre class="mermaid"><code>flowchart TB
-  lint[&quot;1. Syntax and lint&lt;br/&gt;seconds&quot;] --&gt; unit[&quot;2. Process tests&lt;br/&gt;seconds&quot;]
-  unit --&gt; stub[&quot;3. Stubbed workflow&lt;br/&gt;seconds&quot;]
-  stub --&gt; tiny[&quot;4. Tiny real run&lt;br/&gt;minutes&quot;]
-  tiny --&gt; science[&quot;5. Scientific regression&lt;br/&gt;minutes to hours&quot;]
-  science --&gt; scale[&quot;6. Performance and scale&lt;br/&gt;release only&quot;]</code></pre>
-          <table>
-          <colgroup>
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th>Layer</th>
-          <th>What should fail the test?</th>
-          <th>When to run</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td>syntax and lint</td>
-          <td>invalid syntax, deprecated constructs, malformed
-          configuration</td>
-          <td>every change</td>
-          </tr>
-          <tr>
-          <td>process test</td>
-          <td>wrong command, input, output, or metadata contract</td>
-          <td>every change</td>
-          </tr>
-          <tr>
-          <td>stubbed workflow</td>
-          <td>broken channel or missing dependency between
-          processes</td>
-          <td>every change</td>
-          </tr>
-          <tr>
-          <td>tiny integration</td>
-          <td>tool crash, missing container dependency, wrong published
-          file</td>
-          <td>every change when fast; otherwise nightly</td>
-          </tr>
-          <tr>
-          <td>scientific regression</td>
-          <td>unexpected truth-set metric or changed biological
-          result</td>
-          <td>nightly and release</td>
-          </tr>
-          <tr>
-          <td>performance regression</td>
-          <td>material increase in time, memory, retries, or cost</td>
-          <td>release and major tool updates</td>
-          </tr>
-          </tbody>
-          </table>
-          <h2 id="which-testing-tools-matter">Which Testing Tools
-          Matter?</h2>
-          <p><code>nf-test</code> is the most useful Nextflow-specific
-          test framework, but it is not the whole toolbox.</p>
-          <table>
-          <colgroup>
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th>Tool</th>
-          <th>Best use</th>
-          <th>Limitation</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td><code>nextflow lint</code></td>
-          <td>syntax, configuration, and deprecated Nextflow
-          constructs</td>
-          <td>does not execute the pipeline</td>
-          </tr>
-          <tr>
-          <td>Nextflow <code>stub</code> and <code>-stub-run</code></td>
-          <td>test dataflow without running heavy tools</td>
-          <td>fake outputs do not validate tool behavior</td>
-          </tr>
-          <tr>
-          <td><code>nf-test</code></td>
-          <td>process, workflow, pipeline, snapshot, and trace
-          assertions</td>
-          <td>requires a designed test fixture and compatible Java
-          runtime</td>
-          </tr>
-          <tr>
-          <td>Python <code>unittest</code> or <code>pytest</code></td>
-          <td>inspect TSV, JSON, VCF, GTF, counts, and biological
-          metrics</td>
-          <td>you must define meaningful assertions</td>
-          </tr>
-          <tr>
-          <td><code>pytest-workflow</code></td>
-          <td>generic command and file-based workflow tests</td>
-          <td>less Nextflow-aware than <code>nf-test</code></td>
-          </tr>
-          <tr>
-          <td>Bash or Bats</td>
-          <td>small smoke tests and file contracts</td>
-          <td>becomes hard to maintain when assertions grow</td>
-          </tr>
-          <tr>
-          <td><code>nf-core pipelines lint</code></td>
-          <td>enforce nf-core structure and community conventions</td>
-          <td>most useful for nf-core-style repositories</td>
-          </tr>
-          <tr>
-          <td>Trivy or Grype</td>
-          <td>scan container images and dependencies</td>
-          <td>a clean scan does not prove analytical validity</td>
-          </tr>
-          </tbody>
-          </table>
-          <p>This project uses <code>nextflow lint</code>, Nextflow
-          stubs, <code>nf-test</code>, Bash, and Python’s
-          standard-library <code>unittest</code>. There is no single
-          magic test runner.</p>
-          <h3 id="choose-test-data-deliberately">Choose Test Data
-          Deliberately</h3>
-          <table>
-          <colgroup>
-          <col style="width: 50%" />
-          <col style="width: 50%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th>Fixture</th>
-          <th>Purpose</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td>tiny positive case</td>
-          <td>proves the expected path works</td>
-          </tr>
-          <tr>
-          <td>negative case</td>
-          <td>proves bad input or a failed QC gate is rejected</td>
-          </tr>
-          <tr>
-          <td>boundary case</td>
-          <td>tests the exact edge of a threshold, such as three versus
-          four reads</td>
-          </tr>
-          <tr>
-          <td>public truth set</td>
-          <td>measures biological sensitivity, precision, or
-          concordance</td>
-          </tr>
-          <tr>
-          <td>malformed input</td>
-          <td>checks that the error is early and understandable</td>
-          </tr>
-          </tbody>
-          </table>
-          <p>Never make a test dataset tiny by blindly taking the first
-          few records. Preserve the feature that the test is meant to
-          exercise: a splice junction, known isoform, variant, stranded
-          read, low-quality sample, or metadata failure.</p>
-          <h2 id="github-actions-or-jenkins">GitHub Actions Or
-          Jenkins?</h2>
-          <p>Both tools automate commands. The main difference is where
-          they run and who operates them.</p>
-          <table>
-          <colgroup>
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          <col style="width: 33%" />
-          </colgroup>
-          <thead>
-          <tr>
-          <th></th>
-          <th>GitHub Actions</th>
-          <th>Jenkins</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td>strongest fit</td>
-          <td>public or GitHub-hosted projects</td>
-          <td>private biotech/pharma networks, on-premises systems, and
-          custom HPC access</td>
-          </tr>
-          <tr>
-          <td>setup</td>
-          <td>fast; workflow YAML lives in
-          <code>.github/workflows</code></td>
-          <td>Jenkins controller, agents, plugins, credentials, and
-          upgrades need ownership</td>
-          </tr>
-          <tr>
-          <td>runners</td>
-          <td>GitHub-hosted or self-hosted</td>
-          <td>self-hosted agents you control</td>
-          </tr>
-          <tr>
-          <td>pull-request experience</td>
-          <td>native checks and annotations</td>
-          <td>strong after source-control integration</td>
-          </tr>
-          <tr>
-          <td>customization</td>
-          <td>marketplace actions and containers</td>
-          <td>highly customizable agents and plugins</td>
-          </tr>
-          <tr>
-          <td>main risk</td>
-          <td>unsafe third-party actions or secrets on untrusted
-          code</td>
-          <td>plugin drift, server maintenance, and inconsistent
-          agents</td>
-          </tr>
-          </tbody>
-          </table>
-          <p><strong>Our choice:</strong> GitHub Actions is the public
-          reference implementation. Jenkins runs the same checks for
-          teams that need private infrastructure. The tests do not
-          change with the CI platform.</p>
-          <h2 id="five-minute-lab-test-three-fastq-reads">Five-Minute
-          Lab: Test Three FASTQ Reads</h2>
-          <p>The sandbox contains three reads: 8, 12, and 16 bases long.
-          The workflow counts them, calculates length metrics, and
-          applies a minimum-read gate.</p>
-          <pre class="mermaid"><code>flowchart LR
-  fastq[&quot;tiny.fastq&lt;br/&gt;3 reads&quot;] --&gt; summary[&quot;SUMMARIZE_READS&lt;br/&gt;count and lengths&quot;]
-  summary --&gt; metrics[&quot;read_qc.tsv&quot;]
-  metrics --&gt; gate[&quot;QUALITY_GATE&lt;br/&gt;require 3 reads&quot;]
-  gate --&gt; pass[&quot;quality_gate.tsv&lt;br/&gt;PASS&quot;]</code></pre>
-          <h3 id="run-it">1. Run It</h3>
-          <p>You need Nextflow, Java, Bash, and Python 3. Docker is not
-          required.</p>
-          <div class="sourceCode" id="cb4"><pre
-          class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the public Field Guide repository.</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide.git</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Enter the repository.</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> Bioinformatics_Field_Guide</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the tiny Nextflow pipeline and four scientific assertions.</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_sandbox.sh</span></code></pre></div>
-          <p>The important output is short:</p>
-          <pre class="text"><code>Ran 4 tests in 0.001s
+  change[&quot;Change code&quot;] --&gt; tests[&quot;Run known tests&quot;]
+  tests --&gt; result{&quot;All expectations met?&quot;}
+  result --&gt;|No| fix[&quot;Investigate and fix&quot;]
+  result --&gt;|Yes| review[&quot;Review evidence&quot;]
+  review --&gt; release[&quot;Merge or release&quot;]</code></pre>
+          <p>The important idea is not the automation platform. It is
+          the set of questions you ask before trusting a change.</p>
+          <h2 id="a-five-minute-first-win">A Five-Minute First Win</h2>
+          <p>You need Nextflow, Java, Bash, and Python 3. Docker and
+          biological software are not required for this sandbox.</p>
+          <div class="sourceCode" id="cb2"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the public Field Guide repository.</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide.git</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Move into the downloaded project.</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> Bioinformatics_Field_Guide</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the tiny pipeline, inspect its files, and test its results.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_sandbox.sh</span></code></pre></div>
+          <p>The fixture contains reads of 12, 8, and 16 bases.
+          Therefore, a correct result has 3 reads, 36 total bases, a
+          mean length of 12, a minimum of 8, and a maximum of 16.</p>
+          <pre class="text"><code>File contract: PASS (two non-empty TSV files with metric/value headers)
+
+Ran 6 tests in 0.002s
 OK
 
 QC summary
@@ -564,319 +255,423 @@ metric          value
 status          PASS
 reads           3
 minimum_reads   3</code></pre>
-          <p>The Nextflow command proves that the processes run. The
-          Python tests prove that the numbers and decision are
-          correct.</p>
-          <h3 id="break-it-on-purpose">2. Break It On Purpose</h3>
-          <p>Raise the minimum from three reads to four:</p>
-          <div class="sourceCode" id="cb6"><pre
-          class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This is expected to fail because the FASTQ contains only three reads.</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> run content/resources/week-07/sandbox/main.nf <span class="dt">\</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reads</span> content/resources/week-07/sandbox/data/tiny.fastq <span class="dt">\</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--min_reads</span> 4 <span class="dt">\</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--outdir</span> build/expected-failure <span class="dt">\</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">-work-dir</span> build/failure-work <span class="dt">\</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">-ansi-log</span> false</span></code></pre></div>
-          <p>Expected message:</p>
-          <pre class="text"><code>QC failed: expected at least 4 reads, observed 3.
-ERROR ~ Error executing process &gt; &#39;QUALITY_GATE&#39;</code></pre>
-          <p>That red result is good. The gate rejected data that
-          violated its contract. A useful test must fail when behavior
-          is wrong.</p>
-          <h2 id="test-the-week-6-ont-pipeline">Test The Week 6 ONT
-          Pipeline</h2>
-          <p>The real workflow has five processes. FASTQ QC and
+          <p>You have just run a Nextflow integration test, a
+          file-contract test, and six Python assertions. Now let us
+          separate those layers and see what each one protects.</p>
+          <h2 id="the-seven-tests-you-will-reuse">The Seven Tests You
+          Will Reuse</h2>
+          <pre class="mermaid"><code>flowchart TB
+  lint[&quot;1. Lint&lt;br/&gt;Can Nextflow read the code?&quot;] --&gt; smoke[&quot;2. Smoke run&lt;br/&gt;Can the small workflow finish?&quot;]
+  smoke --&gt; files[&quot;3. File contract&lt;br/&gt;Were the promised files created?&quot;]
+  files --&gt; answer[&quot;4. Known answer&lt;br/&gt;Are exact values correct?&quot;]
+  answer --&gt; rule[&quot;5. Invariant&lt;br/&gt;Are scientific rules preserved?&quot;]
+  rule --&gt; negative[&quot;6. Expected failure&lt;br/&gt;Is bad input rejected?&quot;]
+  negative --&gt; wiring[&quot;7. Workflow contract&lt;br/&gt;Are all pipeline stages connected?&quot;]</code></pre>
+          <h3 id="lint-test-catch-invalid-nextflow-early">1. Lint Test:
+          Catch Invalid Nextflow Early</h3>
+          <p><strong>Question:</strong> Can Nextflow parse the scripts
+          and configuration?</p>
+          <p><strong>Use it:</strong> On every edit and pull request. It
+          is fast and catches syntax errors, deprecated constructs, and
+          style problems before a workflow starts.</p>
+          <div class="sourceCode" id="cb5"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Examine every Nextflow file in the Week 6 project without running the pipeline.</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> lint content/resources/week-06</span></code></pre></div>
+          <p>Expected final output:</p>
+          <pre class="text"><code>Nextflow linting complete!
+8 files had no errors</code></pre>
+          <p>If it fails, Nextflow names the file and issue. Fix lint
+          errors first; downstream tests are harder to interpret when
+          the code cannot be parsed.</p>
+          <h3 id="smoke-test-prove-a-tiny-workflow-can-finish">2. Smoke
+          Test: Prove A Tiny Workflow Can Finish</h3>
+          <p><strong>Question:</strong> Can representative input travel
+          through the main path without a process crashing?</p>
+          <p><strong>Use it:</strong> On every pull request when it
+          takes seconds or a few minutes. Use a scheduled job if the
+          smallest meaningful run is still expensive.</p>
+          <p>The sandbox sends one FASTQ through two processes:</p>
+          <pre class="mermaid"><code>flowchart LR
+  fastq[&quot;tiny.fastq&lt;br/&gt;3 reads&quot;] --&gt; summary[&quot;SUMMARIZE_READS&quot;]
+  summary --&gt; metrics[&quot;read_qc.tsv&quot;]
+  metrics --&gt; gate[&quot;QUALITY_GATE&quot;]
+  gate --&gt; decision[&quot;quality_gate.tsv&lt;br/&gt;PASS&quot;]</code></pre>
+          <div class="sourceCode" id="cb8"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run the small end-to-end path and all checks attached to it.</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_sandbox.sh</span></code></pre></div>
+          <p>These lines prove both processes were scheduled and
+          completed:</p>
+          <pre class="text"><code>Submitted process &gt; SUMMARIZE_READS (tiny)
+Submitted process &gt; QUALITY_GATE (1)</code></pre>
+          <p>A smoke test answers “did it run?” It does not yet prove
+          that every result is correct. That is why the next tests
+          inspect the outputs.</p>
+          <h3
+          id="file-contract-test-check-what-the-pipeline-promised">3.
+          File-Contract Test: Check What The Pipeline Promised</h3>
+          <p><strong>Question:</strong> Do the required outputs exist,
+          contain data, and use the expected basic format?</p>
+          <p><strong>Use it:</strong> After every process that hands a
+          file to another process, tool, or analyst. File contracts
+          catch renamed outputs, empty files, and changed headers.</p>
+          <p>This Bash loop checks both sandbox TSV files:</p>
+          <div class="sourceCode" id="cb10"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> result_file <span class="kw">in</span> read_qc.tsv quality_gate.tsv<span class="kw">;</span> <span class="cf">do</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">result_path</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${outdir}</span><span class="st">/</span><span class="va">${result_file}</span><span class="st">&quot;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># -s is true only when the file exists and is not empty.</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">[[</span> <span class="ot">-s</span> <span class="st">&quot;</span><span class="va">${result_path}</span><span class="st">&quot;</span> <span class="kw">]]</span> <span class="kw">||</span> <span class="bu">exit</span> 1</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Confirm the first line is the two-column schema expected downstream.</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">[[</span> <span class="st">&quot;</span><span class="va">$(</span><span class="fu">head</span> <span class="at">-n</span> 1 <span class="st">&quot;</span><span class="va">${result_path}</span><span class="st">&quot;</span><span class="va">)</span><span class="st">&quot;</span> <span class="ot">==</span> <span class="st">$&#39;metric</span><span class="dt">\t</span><span class="st">value&#39;</span> <span class="kw">]]</span> <span class="kw">||</span> <span class="bu">exit</span> 1</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="cf">done</span></span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>File contract: PASS (two non-empty TSV files with metric/value headers)</code></pre>
+          <p>For BAM, add <code>samtools quickcheck</code>; for VCF, use
+          <code>bcftools view -h</code>; for JSON, parse it instead of
+          searching raw text. A file merely existing is the weakest
+          useful contract.</p>
+          <h3 id="known-answer-test-check-exact-values">4. Known-Answer
+          Test: Check Exact Values</h3>
+          <p><strong>Question:</strong> Does known input produce the
+          known answer?</p>
+          <p><strong>Use it:</strong> For deterministic parsing,
+          transformations, counts, coordinate conversion, filters, and
+          calculations. Keep fixtures small enough that you can verify
+          the expected answer by hand.</p>
+          <p>Python’s built-in <code>unittest</code> discovers functions
+          whose names begin with <code>test_</code>. Each assertion
+          states one expectation:</p>
+          <div class="sourceCode" id="cb12"><pre
+          class="sourceCode python"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_required_metrics(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The output must contain exactly these five metric names.</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertSetEqual(</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">set</span>(<span class="va">self</span>.qc),</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        {<span class="st">&quot;reads&quot;</span>, <span class="st">&quot;bases&quot;</span>, <span class="st">&quot;mean_length&quot;</span>, <span class="st">&quot;min_length&quot;</span>, <span class="st">&quot;max_length&quot;</span>},</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_read_count(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The fixture was designed with exactly three reads.</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertEqual(<span class="bu">int</span>(<span class="va">self</span>.qc[<span class="st">&quot;reads&quot;</span>]), <span class="dv">3</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_total_bases(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Read lengths 12 + 8 + 16 must total 36 bases.</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertEqual(<span class="bu">int</span>(<span class="va">self</span>.qc[<span class="st">&quot;bases&quot;</span>]), <span class="dv">36</span>)</span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>test_read_count (...) ... ok
+test_required_metrics (...) ... ok
+test_total_bases (...) ... ok</code></pre>
+          <p>If <code>reads</code> becomes <code>4</code>,
+          <code>assertEqual</code> reports the observed and expected
+          values. That message is much more useful than discovering a
+          changed table days later.</p>
+          <h3 id="invariant-test-protect-a-rule-not-one-dataset">5.
+          Invariant Test: Protect A Rule, Not One Dataset</h3>
+          <p><strong>Question:</strong> Is a relationship that should
+          always hold still true?</p>
+          <p><strong>Use it:</strong> When exact outputs may vary across
+          valid tool versions but scientific or mathematical rules must
+          remain true.</p>
+          <p>The mean read length must lie between the shortest and
+          longest read:</p>
+          <div class="sourceCode" id="cb14"><pre
+          class="sourceCode python"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_lengths_are_ordered(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    minimum <span class="op">=</span> <span class="bu">int</span>(<span class="va">self</span>.qc[<span class="st">&quot;min_length&quot;</span>])</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    mean <span class="op">=</span> <span class="bu">float</span>(<span class="va">self</span>.qc[<span class="st">&quot;mean_length&quot;</span>])</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    maximum <span class="op">=</span> <span class="bu">int</span>(<span class="va">self</span>.qc[<span class="st">&quot;max_length&quot;</span>])</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This relationship should hold for any non-empty FASTQ, not only our fixture.</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertLessEqual(minimum, mean)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertLessEqual(mean, maximum)</span></code></pre></div>
+          <p>The QC decision has its own invariant:</p>
+          <div class="sourceCode" id="cb15"><pre
+          class="sourceCode python"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_quality_gate(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertEqual(<span class="va">self</span>.gate[<span class="st">&quot;status&quot;</span>], <span class="st">&quot;PASS&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertGreaterEqual(</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">int</span>(<span class="va">self</span>.gate[<span class="st">&quot;reads&quot;</span>]), <span class="bu">int</span>(<span class="va">self</span>.gate[<span class="st">&quot;minimum_reads&quot;</span>])</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>test_lengths_are_ordered (...) ... ok
+test_quality_gate (...) ... ok</code></pre>
+          <p>Useful bioinformatics invariants include
+          <code>0 &lt;= allele_frequency &lt;= 1</code>, every sample in
+          the samplesheet appears in the report, genomic intervals have
+          <code>start &lt; end</code>, and paired files share the same
+          sample identifier.</p>
+          <h3 id="expected-failure-test-make-sure-bad-input-stops">6.
+          Expected-Failure Test: Make Sure Bad Input Stops</h3>
+          <p><strong>Question:</strong> Does the pipeline fail for the
+          right reason when an acceptance rule is violated?</p>
+          <p><strong>Use it:</strong> For malformed samplesheets,
+          reference mismatches, missing metadata, unsupported protocols,
+          empty results, and QC boundaries.</p>
+          <p>Our positive test requires at least three reads. The
+          negative test deliberately raises the requirement to four
+          while keeping the same three-read fixture:</p>
+          <div class="sourceCode" id="cb17"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This wrapper passes only when the inner Nextflow run fails as expected.</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/test_expected_failure.sh</span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>Expected-failure test: PASS
+QC failed: expected at least 4 reads, observed 3.</code></pre>
+          <p>The wrapper checks two things: Nextflow returned a non-zero
+          exit status, and the log contains the exact QC message. A
+          random crash therefore cannot masquerade as the expected
+          rejection.</p>
+          <p>This is a particularly valuable trick: <strong>test the
+          test</strong>. Run one example that should pass and a
+          neighboring example that should fail.</p>
+          <h3
+          id="workflow-contract-test-check-a-larger-pipeline-cheaply">7.
+          Workflow-Contract Test: Check A Larger Pipeline Cheaply</h3>
+          <p><strong>Question:</strong> Are all processes, channels,
+          metadata, and output names still connected?</p>
+          <p><strong>Use it:</strong> For multi-process Nextflow
+          workflows where running every real bioinformatics tool on
+          every edit would be slow or costly.</p>
+          <p>The Week 6 ONT workflow has five processes. FASTQ QC and
           alignment can begin in parallel:</p>
           <pre class="text"><code>FASTQ -&gt; FASTQ_QC
      \-&gt; ALIGN_MINIMAP2 -&gt; ALIGNMENT_QC
                         \-&gt; ISOQUANT_DISCOVERY -&gt; SQANTI3_ANNOTATION</code></pre>
-          <p>Running all real tools on every edit would download a
-          multi-gigabyte image and waste CI time. Each process therefore
-          has a lightweight <code>stub</code> that creates correctly
-          named stand-in outputs.</p>
-          <p>Here is the alignment stub:</p>
-          <pre class="nextflow"><code>stub:
-&quot;&quot;&quot;
-printf &#39;stub alignment for ${meta.id}\n&#39; &gt; ${meta.id}.sorted.bam
-printf &#39;stub index for ${meta.id}\n&#39; &gt; ${meta.id}.sorted.bam.bai
-&quot;&quot;&quot;</code></pre>
-          <p>During a normal run, Nextflow executes the real minimap2
-          and samtools script. During <code>-stub-run</code>, it
-          executes this block instead. Downstream processes receive the
-          same filenames, so the dataflow can be tested without
-          pretending the files contain real alignments.</p>
-          <p>The <code>nf-test</code> specification supplies tiny inputs
-          and checks the execution trace:</p>
-          <div class="sourceCode" id="cb10"><pre
-          class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>nextflow_pipeline <span class="op">{</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  name <span class="st">&quot;Week 6 ONT pipeline wiring&quot;</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  script <span class="st">&quot;main.nf&quot;</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">test</span><span class="op">(</span><span class="st">&quot;runs all five stages with lightweight stubs&quot;</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    options <span class="st">&quot;-stub-run&quot;</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    when <span class="op">{</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>      params <span class="op">{</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>        input <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/samplesheet.csv&quot;</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>        reference <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/tiny.fa&quot;</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>        annotation <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/tiny.gtf&quot;</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>        outdir <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$outputDir</span><span class="st">&quot;</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    then <span class="op">{</span></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>      <span class="kw">assert</span> workflow<span class="op">.</span>success</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>      <span class="kw">assert</span> workflow<span class="op">.</span>trace<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">5</span></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>      <span class="kw">assert</span> workflow<span class="op">.</span>trace<span class="op">.</span><span class="fu">failed</span><span class="op">().</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">0</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-          <p>Run it locally:</p>
-          <div class="sourceCode" id="cb11"><pre
-          class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Enter the Week 6 pipeline project.</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> content/resources/week-06</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the report folder. nf-test will write JUnit XML here.</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mkdir</span> <span class="at">-p</span> .test-results</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Run in CI mode so missing snapshots or failures stop the build.</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="ex">nf-test</span> test tests/pipeline.nf.test <span class="dt">\</span></span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">--ci</span> <span class="dt">\</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">--junitxml</span> .test-results/nf-test.xml</span></code></pre></div>
-          <p>Expected result:</p>
-          <pre class="text"><code>Week 6 ONT pipeline wiring
-Test &#39;runs all five stages with lightweight stubs&#39; PASSED
+          <p>Each process has a Nextflow <code>stub</code> that creates
+          lightweight stand-in outputs. <code>nf-test</code> runs those
+          stubs and inspects the execution trace:</p>
+          <div class="sourceCode" id="cb20"><pre
+          class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">test</span><span class="op">(</span><span class="st">&quot;runs all five stages with lightweight stubs&quot;</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  options <span class="st">&quot;-stub-run&quot;</span>                 <span class="co">// Skip expensive biological commands.</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  when <span class="op">{</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    params <span class="op">{</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>      input <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/samplesheet.csv&quot;</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>      reference <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/tiny.fa&quot;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>      annotation <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$baseDir</span><span class="st">/tests/data/tiny.gtf&quot;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>      outdir <span class="op">=</span> <span class="st">&quot;</span><span class="ss">$outputDir</span><span class="st">&quot;</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  then <span class="op">{</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assert</span> workflow<span class="op">.</span>success                         <span class="co">// The workflow completed.</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assert</span> workflow<span class="op">.</span>trace<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">5</span>       <span class="co">// All five tasks ran.</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">assert</span> workflow<span class="op">.</span>trace<span class="op">.</span><span class="fu">failed</span><span class="op">().</span><span class="fu">size</span><span class="op">()</span> <span class="op">==</span> <span class="dv">0</span>      <span class="co">// No task failed.</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+          <p>Run the contract test:</p>
+          <div class="sourceCode" id="cb21"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run only the Week 6 nf-test contract from the repository root.</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh contract</span></code></pre></div>
+          <p>Expected output:</p>
+          <pre class="text"><code>Test &#39;runs all five stages with lightweight stubs&#39; PASSED
 SUCCESS: Executed 1 tests</code></pre>
-          <p>If nf-test reports
-          <code>Unsupported class file major version</code>, check
-          <code>java -version</code>. This project is tested with Java
-          17 and nf-test 0.9.3. A much newer Java runtime can be ahead
-          of nf-test’s bundled Groovy version.</p>
-          <h3 id="what-the-fast-test-proves">What The Fast Test
-          Proves</h3>
+          <p>This proves the workflow is wired correctly. It does
+          <strong>not</strong> prove that minimap2 aligned reads
+          correctly or that IsoQuant discovered valid isoforms. Stubs
+          test plumbing, not biology.</p>
+          <h2 id="add-scientific-regression-tests-next">Add Scientific
+          Regression Tests Next</h2>
+          <p>Software checks answer whether the pipeline behaves as
+          designed. Scientific regression tests ask whether a reviewed
+          biological result changed.</p>
+          <p>The <a
+          href="week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project">Week
+          6 public-data tutorial</a> produced 439 primary alignments, 30
+          transcript models, and 30 SQANTI3 classification rows with the
+          pinned tool versions. A scheduled test could compare a new run
+          with those versioned expectations.</p>
+          <p>Good scientific checks might ask:</p>
           <ul>
-          <li>the samplesheet is parsed</li>
-          <li>protocol metadata reaches alignment</li>
-          <li>all five tasks are connected</li>
-          <li>expected output names still exist</li>
-          <li>no task fails</li>
+          <li>Were expected control transcripts recovered?</li>
+          <li>Did transcript or splice-junction counts move outside
+          reviewed tolerances?</li>
+          <li>Do genome and annotation identifiers match?</li>
+          <li>Did a sample disappear between input and report?</li>
+          <li>Did structural-category proportions shift
+          unexpectedly?</li>
+          <li>Did runtime or peak memory change materially?</li>
           </ul>
-          <p>It does <strong>not</strong> prove that minimap2 aligned
-          reads correctly or that IsoQuant discovered valid
-          isoforms.</p>
-          <h3 id="add-real-scientific-checks">Add Real Scientific
-          Checks</h3>
-          <p>Use the <a
-          href="week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project">public
-          Week 6 IsoQuant dataset</a> for scheduled and release tests.
-          With the pinned versions used in this guide, the verified run
-          produced 439 primary alignments, 30 transcript models, and 30
-          SQANTI3 classification rows.</p>
-          <p>Treat those values as versioned expectations, not universal
-          biological thresholds. If a reviewed tool update changes them,
-          investigate the reason before updating the test.</p>
-          <p>For a production isoform pipeline, consider checking:</p>
-          <ul>
-          <li>expected control transcripts are recovered</li>
-          <li>transcript and junction counts remain within reviewed
-          tolerances</li>
-          <li>genome build and annotation identifiers match</li>
-          <li>structural-category proportions do not shift
-          unexpectedly</li>
-          <li>no sample disappears from the output</li>
-          <li>runtime, peak memory, retries, and output size stay within
-          a budget</li>
-          </ul>
-          <p>Prefer stable assertions. Sort records before comparing
-          them, ignore timestamps and temporary paths, and use reviewed
-          numeric tolerances when exact equality is not scientifically
-          meaningful. Snapshot changes should be inspected, not accepted
-          automatically.</p>
-          <h2 id="one-command-everywhere">One Command Everywhere</h2>
-          <p>The shared entry point keeps local and hosted CI
-          aligned:</p>
-          <div class="sourceCode" id="cb13"><pre
-          class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># From the repository root: lint, run nf-test, run the sandbox, and validate results.</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh</span></code></pre></div>
-          <p>The script supports smaller targets too:</p>
-          <div class="sourceCode" id="cb14"><pre
-          class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh lint</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh contract</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh sandbox</span></code></pre></div>
-          <p>If this command fails locally, it should fail in GitHub
-          Actions and Jenkins for the same reason.</p>
-          <h2 id="github-actions-the-public-path">GitHub Actions: The
-          Public Path</h2>
-          <p>The repository workflow runs when Week 6 or Week 7 pipeline
-          files change in a pull request or on <code>main</code>; it can
-          also be started manually. It installs pinned tool versions,
-          runs the shared script, and keeps reports even when a test
-          fails.</p>
-          <div class="sourceCode" id="cb15"><pre
-          class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">jobs</span><span class="kw">:</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">fast-tests</span><span class="kw">:</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">runs-on</span><span class="kw">:</span><span class="at"> ubuntu-latest</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">timeout-minutes</span><span class="kw">:</span><span class="at"> </span><span class="dv">15</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">steps</span><span class="kw">:</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> nf-core/setup-nextflow@v3</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;26.04.2&#39;</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">java-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;17&#39;</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">java-distribution</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;temurin&#39;</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> nf-core/setup-nf-test@v1</span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;0.9.3&#39;</span></span>
-<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run the shared fast CI suite</span></span>
-<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">run</span><span class="kw">:</span><span class="at"> bash content/resources/week-07/scripts/run_fast_ci.sh</span></span>
-<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Keep reports and sandbox outputs</span></span>
-<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">if</span><span class="kw">:</span><span class="at"> always()</span></span>
-<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v7</span></span>
-<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">with</span><span class="kw">:</span></span>
-<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">name</span><span class="kw">:</span><span class="at"> week-07-ci-results</span></span>
-<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="fu">          path</span><span class="kw">: </span><span class="ch">|</span></span>
-<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>            build/test-results/</span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>            build/sandbox/</span></code></pre></div>
-          <p><a
-          href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/.github/workflows/week-07-pipeline-ci.yml">View
-          the complete workflow</a>, including path filters, read-only
-          permissions, concurrency control, and manual execution.</p>
-          <p>For a regulated or security-sensitive repository, pin
-          external actions to reviewed commit SHAs, restrict
-          permissions, protect the release environment, and review
-          dependency updates.</p>
-          <h2 id="jenkins-the-private-infrastructure-path">Jenkins: The
-          Private Infrastructure Path</h2>
-          <p>Jenkins is useful when runners must reach an internal HPC
-          cluster, private registry, controlled S3 bucket, or approved
-          network that a public runner cannot access.</p>
-          <p>Store the pipeline definition as a <code>Jenkinsfile</code>
-          in Git. Do not hide the build logic in a manually configured
-          web form.</p>
-          <div class="sourceCode" id="cb16"><pre
-          class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">{</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  agent <span class="op">{</span> label <span class="st">&#39;bioinformatics-ci&#39;</span> <span class="op">}</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  options <span class="op">{</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">timestamps</span><span class="op">()</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">timeout</span><span class="op">(</span>time<span class="op">:</span> <span class="dv">15</span><span class="op">,</span> unit<span class="op">:</span> <span class="st">&#39;MINUTES&#39;</span><span class="op">)</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">disableConcurrentBuilds</span><span class="op">(</span>abortPrevious<span class="op">:</span> <span class="kw">true</span><span class="op">)</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  stages <span class="op">{</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stage</span><span class="op">(</span><span class="st">&#39;Environment&#39;</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>      steps <span class="op">{</span> sh <span class="st">&#39;bash content/resources/week-07/scripts/run_fast_ci.sh versions&#39;</span> <span class="op">}</span></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stage</span><span class="op">(</span><span class="st">&#39;Lint&#39;</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>      steps <span class="op">{</span> sh <span class="st">&#39;bash content/resources/week-07/scripts/run_fast_ci.sh lint&#39;</span> <span class="op">}</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stage</span><span class="op">(</span><span class="st">&#39;Pipeline contract&#39;</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>      steps <span class="op">{</span> sh <span class="st">&#39;bash content/resources/week-07/scripts/run_fast_ci.sh contract&#39;</span> <span class="op">}</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stage</span><span class="op">(</span><span class="st">&#39;Tiny FASTQ sandbox&#39;</span><span class="op">)</span> <span class="op">{</span></span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>      steps <span class="op">{</span> sh <span class="st">&#39;bash content/resources/week-07/scripts/run_fast_ci.sh sandbox&#39;</span> <span class="op">}</span></span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>  post <span class="op">{</span></span>
-<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    always <span class="op">{</span></span>
-<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>      script <span class="op">{</span></span>
-<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span><span class="fu">fileExists</span><span class="op">(</span><span class="st">&#39;build/test-results/nf-test.xml&#39;</span><span class="op">))</span> <span class="op">{</span></span>
-<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>          junit testResults<span class="op">:</span> <span class="st">&#39;build/test-results/nf-test.xml&#39;</span></span>
-<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span><span class="fu">fileExists</span><span class="op">(</span><span class="st">&#39;build/sandbox/read_qc.tsv&#39;</span><span class="op">))</span> <span class="op">{</span></span>
-<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>          archiveArtifacts artifacts<span class="op">:</span> <span class="st">&#39;build/sandbox/**&#39;</span><span class="op">,</span> fingerprint<span class="op">:</span> <span class="kw">true</span></span>
-<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
-<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>      <span class="op">}</span></span>
-<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-          <p>The Jenkins agent labeled <code>bioinformatics-ci</code>
-          needs Java 17, Nextflow 26.04.2, nf-test 0.9.3, Bash, and
-          Python 3. The controller needs the Pipeline and JUnit plugins.
-          Jenkins then records the test report and fingerprints the
-          sandbox outputs for traceability.</p>
-          <h2 id="a-practical-pharma-test-schedule">A Practical Pharma
-          Test Schedule</h2>
+          <p>Do not blindly compare whole files byte for byte. Sort
+          records, ignore timestamps and temporary paths, and use
+          reviewed tolerances when exact equality has no scientific
+          meaning. When an expected metric changes after a legitimate
+          tool update, investigate and document why before changing the
+          test.</p>
+          <h2 id="decide-when-each-test-runs">Decide When Each Test
+          Runs</h2>
+          <p>Fast feedback and deep validation serve different
+          moments:</p>
           <table>
           <colgroup>
-          <col style="width: 25%" />
-          <col style="width: 25%" />
-          <col style="width: 25%" />
-          <col style="width: 25%" />
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          <col style="width: 33%" />
           </colgroup>
           <thead>
           <tr>
-          <th>Stage</th>
-          <th>Data</th>
-          <th>Checks</th>
-          <th>Target time</th>
+          <th>Trigger</th>
+          <th>Run</th>
+          <th>Why</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-          <td>every pull request</td>
-          <td>synthetic files committed to Git</td>
-          <td>lint, stubs, unit assertions, tiny sandbox</td>
-          <td>under 5 minutes</td>
+          <td>while coding</td>
+          <td>one focused test</td>
+          <td>get an answer in seconds</td>
           </tr>
           <tr>
-          <td>nightly</td>
-          <td>small public or approved de-identified dataset</td>
-          <td>real tools, containers, reference access, scientific
-          metrics</td>
-          <td>under 1 hour</td>
+          <td>every pull request</td>
+          <td>lint, unit, file, negative, and stub tests</td>
+          <td>block obvious regressions before merge</td>
+          </tr>
+          <tr>
+          <td>nightly or weekly</td>
+          <td>real tools on small public or approved data</td>
+          <td>detect dependency, container, and reference drift</td>
           </tr>
           <tr>
           <td>release candidate</td>
-          <td>locked validation set</td>
-          <td>concordance, reviewed tolerances, provenance,
-          performance</td>
-          <td>project-specific</td>
-          </tr>
-          <tr>
-          <td>production promotion</td>
-          <td>no new analysis</td>
-          <td>verify approved image digest, config, release notes, and
-          sign-off</td>
-          <td>minutes</td>
+          <td>scientific metrics, provenance, performance, security</td>
+          <td>create evidence for a reviewed release</td>
           </tr>
           </tbody>
           </table>
-          <p>Keep protected data off public runners. Use synthetic or
-          public fixtures for public CI. Run controlled datasets only on
-          approved self-hosted infrastructure with least-privilege
-          credentials, encryption, audit logging, and retention
-          rules.</p>
-          <p>CI/CD can support an organization’s validation process. It
-          does not create regulatory compliance by itself.</p>
-          <h2 id="what-should-a-release-preserve">What Should A Release
-          Preserve?</h2>
-          <p>Save enough evidence to reconstruct both the software and
-          the decision:</p>
+          <p>Tiny data must still be meaningful. Preserve the feature
+          the test is meant to exercise, such as a splice junction,
+          known isoform, stranded read, low-quality sample, or metadata
+          error. Taking the first ten records from a large file rarely
+          creates a good fixture.</p>
+          <h2 id="one-command-on-a-laptop-or-in-ci">One Command On A
+          Laptop Or In CI</h2>
+          <p>The complete fast suite has one entry point:</p>
+          <div class="sourceCode" id="cb23"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Print versions, lint Week 6, run nf-test, test the sandbox,</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># and confirm that the QC gate rejects its negative case.</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh</span></code></pre></div>
+          <p>You can run one layer while developing:</p>
+          <div class="sourceCode" id="cb24"><pre
+          class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh lint</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh contract</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh sandbox</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh negative</span></code></pre></div>
+          <p>If the same script runs locally and in CI, debugging is
+          simpler. The automation service should call your tests, not
+          hide a second copy of them.</p>
+          <h2 id="automate-it-without-learning-two-platforms">Automate
+          It Without Learning Two Platforms</h2>
+          <p>Think of CI as another computer that checks out the
+          repository and runs the command above from a clean
+          environment.</p>
+          <p>This project’s GitHub Actions workflow installs pinned
+          versions, runs the shared suite, and uploads the reports even
+          if a test fails:</p>
+          <div class="sourceCode" id="cb25"><pre
+          class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">steps</span><span class="kw">:</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/checkout@v7</span><span class="co">       # Download this commit onto the runner.</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> nf-core/setup-nextflow@v3</span><span class="co"> # Install the tested Nextflow and Java versions.</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;26.04.2&#39;</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">java-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;17&#39;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">java-distribution</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;temurin&#39;</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> nf-core/setup-nf-test@v1</span><span class="co">  # Install the tested nf-test version.</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">with</span><span class="kw">:</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;0.9.3&#39;</span></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Run the shared fast CI suite</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">run</span><span class="kw">:</span><span class="at"> bash content/resources/week-07/scripts/run_fast_ci.sh</span></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> Keep reports for debugging</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">if</span><span class="kw">:</span><span class="at"> always()</span><span class="co">                    # Upload evidence even after a failed test.</span></span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> actions/upload-artifact@v7</span></span></code></pre></div>
+          <p><a
+          href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/.github/workflows/week-07-pipeline-ci.yml">Read
+          the complete GitHub Actions workflow</a>. It also uses
+          read-only permissions, path filters, a timeout, and
+          concurrency control.</p>
+          <p>You do not need both GitHub Actions and Jenkins:</p>
+          <table>
+          <colgroup>
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          <col style="width: 33%" />
+          </colgroup>
+          <thead>
+          <tr>
+          <th>Start with</th>
+          <th>Choose it when</th>
+          <th>Tradeoff</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+          <td><strong>GitHub Actions</strong></td>
+          <td>the project is on GitHub and can use GitHub-hosted or
+          self-hosted runners</td>
+          <td>fastest setup; review third-party actions and
+          permissions</td>
+          </tr>
+          <tr>
+          <td><strong>Jenkins</strong></td>
+          <td>jobs must reach an internal HPC cluster, private registry,
+          or controlled network already served by Jenkins agents</td>
+          <td>highly flexible; your team owns the controller, plugins,
+          credentials, and agents</td>
+          </tr>
+          </tbody>
+          </table>
+          <p>Both should run the same repository script. The <a
+          href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-07/Jenkinsfile">complete
+          Jenkinsfile</a> is included for teams that need the
+          private-infrastructure path.</p>
+          <p>Never put protected patient data or production credentials
+          on a public runner. Use synthetic or public fixtures there;
+          keep controlled datasets on approved infrastructure.</p>
+          <h2 id="seven-small-ci-tricks-worth-stealing">Seven Small CI
+          Tricks Worth Stealing</h2>
+          <ol type="1">
+          <li><strong>Start every Bash test script with
+          <code>set -euo pipefail</code>.</strong> It stops on failed
+          commands, unset variables, and failed commands hidden inside
+          pipes.</li>
+          <li><strong>Print tool versions first.</strong> A version
+          difference often explains a local-versus-CI failure.</li>
+          <li><strong>Use exact, helpful failure messages.</strong>
+          Tests should tell the next person what contract was
+          violated.</li>
+          <li><strong>Test both sides of a threshold.</strong> A gate
+          that passes good data but also accepts bad data is not
+          working.</li>
+          <li><strong>Save JUnit reports and small outputs.</strong>
+          They turn a red status into inspectable evidence.</li>
+          <li><strong>Make output comparisons deterministic.</strong>
+          Sort unordered records and remove timestamps before
+          comparing.</li>
+          <li><strong>Pin releases, preserve digests.</strong> Tags can
+          move; container digests and checksums identify the exact
+          artifact tested.</li>
+          </ol>
+          <h2 id="when-green-does-not-mean-correct-biology">When Green
+          Does Not Mean Correct Biology</h2>
+          <p>A pipeline can pass every software test and still use the
+          wrong genome build, annotation release, strandedness,
+          contrast, or sample metadata. CI reduces preventable software
+          errors; it does not replace scientific review.</p>
+          <p>Before release, preserve enough evidence to reconstruct the
+          analysis:</p>
           <ul>
           <li>Git commit and release tag</li>
-          <li>exact Nextflow and nf-test versions</li>
-          <li>immutable container image digest, not only a mutable
-          tag</li>
-          <li>parameter file and non-sensitive samplesheet schema</li>
-          <li>reference genome and annotation release identifiers plus
-          checksums</li>
-          <li>JUnit, Nextflow trace, timeline, report, and DAG</li>
-          <li>scientific acceptance metrics and approved tolerances</li>
-          <li>changelog, reviewer, approval, and release date</li>
-          <li>software bill of materials and security scan where
-          required</li>
+          <li>Nextflow, nf-test, and tool versions</li>
+          <li>immutable container digest</li>
+          <li>parameters and non-sensitive samplesheet schema</li>
+          <li>reference and annotation identifiers plus checksums</li>
+          <li>JUnit, trace, timeline, report, and DAG files</li>
+          <li>scientific acceptance metrics and reviewed tolerances</li>
+          <li>changelog, reviewer, and approval date</li>
           </ul>
-          <p>Do not automatically publish biological conclusions because
-          a build is green. Automate the evidence; keep accountable
-          review at the decision point.</p>
-          <h2 id="diagnose-a-red-build">Diagnose A Red Build</h2>
+          <p>Automate evidence collection. Keep an accountable human at
+          the scientific decision point.</p>
+          <h2 id="if-a-test-turns-red">If A Test Turns Red</h2>
           <table>
           <colgroup>
           <col style="width: 33%" />
@@ -886,88 +681,84 @@ SUCCESS: Executed 1 tests</code></pre>
           <thead>
           <tr>
           <th>Failure</th>
-          <th>First place to look</th>
-          <th>Typical fix</th>
+          <th>Look here first</th>
+          <th>Likely action</th>
           </tr>
           </thead>
           <tbody>
           <tr>
-          <td>lint fails</td>
+          <td>lint error</td>
           <td>named file and line</td>
-          <td>correct syntax or replace a deprecated construct</td>
+          <td>fix syntax or a deprecated construct</td>
           </tr>
           <tr>
-          <td>nf-test cannot find data</td>
-          <td><code>baseDir</code>, samplesheet paths, staged
-          fixtures</td>
-          <td>use repository-relative fixtures or explicit absolute test
-          paths</td>
+          <td>missing output</td>
+          <td>process log and <code>output:</code> declaration</td>
+          <td>repair the command, filename, or channel</td>
           </tr>
           <tr>
-          <td>class-file version error</td>
-          <td><code>java -version</code></td>
-          <td>use the supported Java LTS version</td>
+          <td>wrong exact value</td>
+          <td>assertion diff</td>
+          <td>inspect parsing, filtering, and fixture assumptions</td>
           </tr>
           <tr>
-          <td>stub test fails</td>
-          <td>Nextflow trace and process outputs</td>
-          <td>repair channel shape, metadata, or output contract</td>
+          <td>invariant failure</td>
+          <td>observed metrics</td>
+          <td>investigate impossible or unexpected relationships</td>
           </tr>
           <tr>
-          <td>sandbox fails</td>
-          <td><code>.command.err</code> in the Nextflow work
-          directory</td>
-          <td>fix the command or its runtime dependency</td>
+          <td>negative test passes</td>
+          <td>validation condition and exit code</td>
+          <td>make the pipeline reject invalid input</td>
           </tr>
           <tr>
-          <td>scientific assertion fails</td>
-          <td>metric diff and tool/reference versions</td>
-          <td>investigate first; update expectations only after
-          review</td>
+          <td>nf-test contract fails</td>
+          <td>execution trace</td>
+          <td>repair channels, metadata, or process dependencies</td>
           </tr>
           <tr>
-          <td>CI passes locally only</td>
+          <td>CI only fails remotely</td>
           <td>printed versions and runner architecture</td>
-          <td>make environments explicit and remove hidden local
-          dependencies</td>
+          <td>remove hidden local dependencies and pin environments</td>
           </tr>
           </tbody>
           </table>
+          <p>Do not immediately update an expected value to make CI
+          green. First decide whether the code is wrong, the fixture is
+          wrong, or the intended behavior truly changed.</p>
           <h2 id="the-bookmark-checklist">The Bookmark Checklist</h2>
           <ul class="task-list">
-          <li><label><input type="checkbox" />Every change runs fast
-          CI.</label></li>
-          <li><label><input type="checkbox" />Tests can fail for a
-          demonstrated reason.</label></li>
+          <li><label><input type="checkbox" />A new contributor can run
+          the suite with one command.</label></li>
+          <li><label><input type="checkbox" />Fast tests run on every
+          pull request.</label></li>
+          <li><label><input type="checkbox" />At least one known-answer
+          test checks file content.</label></li>
+          <li><label><input type="checkbox" />At least one invariant
+          protects a general rule.</label></li>
+          <li><label><input type="checkbox" />A negative test proves
+          invalid input is rejected.</label></li>
           <li><label><input type="checkbox" />Workflow wiring is tested
-          separately from real tools.</label></li>
-          <li><label><input type="checkbox" />Scientific assertions
-          inspect content, not only file existence.</label></li>
-          <li><label><input type="checkbox" />Tiny fixtures are public,
-          synthetic, or approved.</label></li>
-          <li><label><input type="checkbox" />Tool, Java, Nextflow, and
-          container versions are explicit.</label></li>
-          <li><label><input type="checkbox" />GitHub Actions and Jenkins
-          call the same local command.</label></li>
-          <li><label><input type="checkbox" />Slow truth-set tests run
+          separately from real tool behavior.</label></li>
+          <li><label><input type="checkbox" />Slow public-data tests run
           on a schedule and before release.</label></li>
+          <li><label><input type="checkbox" />Tool, Java, Nextflow,
+          reference, and container versions are explicit.</label></li>
+          <li><label><input type="checkbox" />Reports and small
+          failed-run artifacts are retained.</label></li>
           <li><label><input type="checkbox" />Changed scientific
           expectations require review.</label></li>
-          <li><label><input type="checkbox" />Reports, provenance, and
-          immutable artifacts are retained.</label></li>
           </ul>
           <h2 id="continue-the-infrastructure-path">Continue The
           Infrastructure Path</h2>
-          <p>The earlier workflow-manager and AWS material is preserved
-          as a <a
+          <p>The workflow-manager and AWS material is preserved as a <a
           href="nextflow-workflow-tools-aws-companion.html">cloud
-          execution companion</a>. Week 8 will extend this
-          infrastructure path into storage, metadata, orchestration, and
-          batch-compute architecture for large biological datasets on
-          AWS.</p>
+          execution companion</a>. Week 8 extends this infrastructure
+          path into storage, metadata, orchestration, and batch-compute
+          architecture for large biological datasets on AWS.</p>
           <h2 id="credits-and-references">Credits And References</h2>
           <ul>
-          <li>Forer L, Schönherr S. <a
+          <li>Forer L, Schoenherr S. <a
           href="https://doi.org/10.1093/gigascience/giaf130">Improving
           the reliability, quality, and maintainability of
           bioinformatics pipelines with nf-test</a>.
@@ -984,34 +775,20 @@ SUCCESS: Executed 1 tests</code></pre>
           <li><a
           href="https://www.nextflow.io/docs/latest/reference/cli.html">Nextflow
           CLI and lint documentation</a></li>
+          <li><a
+          href="https://docs.python.org/3/library/unittest.html">Python
+          <code>unittest</code> documentation</a></li>
           <li><a href="https://docs.github.com/en/actions">GitHub
           Actions documentation</a></li>
           <li><a
-          href="https://github.com/nf-core/setup-nextflow">nf-core
-          setup-nextflow action</a></li>
-          <li><a href="https://github.com/nf-core/setup-nf-test">nf-core
-          setup-nf-test action</a></li>
-          <li><a href="https://github.com/actions/checkout">GitHub
-          checkout action</a></li>
-          <li><a
-          href="https://github.com/actions/upload-artifact">GitHub
-          upload-artifact action</a></li>
+          href="https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions">GitHub
+          Actions security guidance</a></li>
           <li><a
           href="https://www.jenkins.io/doc/book/pipeline/">Jenkins
           Pipeline documentation</a></li>
           <li><a
-          href="https://www.jenkins.io/doc/pipeline/tour/tests-and-artifacts/">Jenkins
-          test and artifact recording</a></li>
-          <li><a
           href="https://nf-co.re/docs/nf-core-tools/cli/pipelines/lint">nf-core
           pipeline linting</a></li>
-          <li><a
-          href="https://pytest-workflow.readthedocs.io/en/stable/">pytest-workflow
-          documentation</a></li>
-          <li><a href="https://trivy.dev/latest/">Trivy
-          documentation</a></li>
-          <li><a href="https://oss.anchore.com/docs/overview/">Grype
-          documentation</a></li>
           </ul>
 
           <section class="article-engagement" aria-labelledby="article-engagement-title">
@@ -1022,8 +799,8 @@ SUCCESS: Executed 1 tests</code></pre>
                 Share this guide with someone learning bioinformatics, suggest an edit on GitHub,
                 or leave a question below.
               </p>
-              <div class="share-actions" data-share-title="Testing
-Nextflow Pipelines Scientists Can Trust">
+              <div class="share-actions" data-share-title="CI/CD for
+Bioinformatics: Seven Tests That Keep Pipelines Honest">
                 <button class="share-button" type="button" data-share-native>
                   <i class="ri-share-forward-line" aria-hidden="true"></i>
                   Share
@@ -1102,7 +879,7 @@ Nextflow Pipelines Scientists Can Trust">
       </div>
     </footer>
 
-    <script src="assets/site.js?v=20260709-engagement"></script>
+    <script src="assets/site.js?v=20261023-repo-links"></script>
     <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
       mermaid.initialize({ startOnLoad: false });

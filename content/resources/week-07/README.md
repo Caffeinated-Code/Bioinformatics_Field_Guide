@@ -7,9 +7,12 @@ This project tests the custom ONT isoform workflow from Week 6 with the same com
 | Layer | Command | What it catches |
 |---|---|---|
 | Nextflow lint | `nextflow lint content/resources/week-06` | invalid or deprecated Nextflow syntax |
+| Tiny integration run | `scripts/run_sandbox.sh` | commands that cannot execute or publish results |
+| File contract | Bash checks in `run_sandbox.sh` | missing, empty, or malformed TSV outputs |
+| Schema and known values | Python `unittest` | missing metrics or incorrect counts and lengths |
+| Scientific invariant | Python `unittest` | impossible ordering such as mean length above the maximum |
+| Expected failure | `scripts/test_expected_failure.sh` | a QC gate that accidentally accepts bad input |
 | Pipeline contract | `nf-test ... -stub-run` | broken channels, process dependencies, metadata, and output names |
-| Real tiny run | `scripts/run_sandbox.sh` | command execution and file publication on three FASTQ reads |
-| Scientific assertions | Python `unittest` | incorrect read count, base count, length summary, or gate decision |
 
 The fast suite does not claim that minimap2, IsoQuant, or SQANTI3 produced biologically valid results. The public Week 6 toy dataset remains the real integration test.
 
@@ -19,8 +22,9 @@ The fast suite does not claim that minimap2, IsoQuant, or SQANTI3 produced biolo
 week-07/
   sandbox/main.nf             # two-process FASTQ QC workflow
   sandbox/data/tiny.fastq     # three synthetic reads
-  sandbox/tests/test_qc.py    # four content assertions
+  sandbox/tests/test_qc.py    # six content and invariant tests
   scripts/run_sandbox.sh      # one-command hands-on lab
+  scripts/test_expected_failure.sh # verifies the QC gate rejects bad input
   scripts/run_fast_ci.sh      # shared local and CI entry point
   Jenkinsfile                 # Jenkins pipeline-as-code example
 ```
@@ -38,7 +42,8 @@ bash content/resources/week-07/scripts/run_sandbox.sh
 Expected result:
 
 ```text
-Ran 4 tests ... OK
+File contract: PASS (two non-empty TSV files with metric/value headers)
+Ran 6 tests ... OK
 
 metric          value
 reads           3
@@ -51,7 +56,13 @@ reads           3
 minimum_reads   3
 ```
 
-To see CI stop a bad result, run the pipeline directly with `--min_reads 4`. The data contains only three reads, so `QUALITY_GATE` must fail.
+To verify that CI stops a bad result, run:
+
+```bash
+bash content/resources/week-07/scripts/test_expected_failure.sh
+```
+
+The data contains three reads while the test requires four. The script passes only if `QUALITY_GATE` fails for the expected reason.
 
 ## Run The Complete Fast Suite
 
@@ -62,6 +73,14 @@ bash content/resources/week-07/scripts/run_fast_ci.sh
 ```
 
 The script is the shared test entry point. GitHub Actions and Jenkins call it instead of duplicating test logic.
+
+Expected final lines:
+
+```text
+Ran 6 tests ... OK
+Expected-failure test: PASS
+QC failed: expected at least 4 reads, observed 3.
+```
 
 ## CI Runners
 

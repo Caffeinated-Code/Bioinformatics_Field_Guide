@@ -54,4 +54,5 @@ jobs:
           path: |
             build/test-results/
             build/sandbox/
+            build/expected-failure/
           if-no-files-found: error
