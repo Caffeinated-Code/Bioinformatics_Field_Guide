@@ -1,5 +1,7 @@
 name: Week 7 pipeline CI
 
+# Start automatically only when the tested project changes. workflow_dispatch
+# also adds a manual "Run workflow" button in the GitHub Actions interface.
 on:
   pull_request:
     paths:
@@ -15,9 +17,11 @@ on:
   workflow_dispatch:
 
 permissions:
+  # The workflow reads source files but cannot write repository contents.
   contents: read
 
 concurrency:
+  # Keep only the newest run for a branch or pull request.
   group: week-07-ci-${{ github.ref }}
   cancel-in-progress: true
 
@@ -29,9 +33,11 @@ jobs:
 
     steps:
       - name: Check out the repository
+        # Copy the exact commit under review onto the temporary runner.
         uses: actions/checkout@v7
 
       - name: Install Nextflow
+        # Pin Java and Nextflow so local and hosted results are comparable.
         uses: nf-core/setup-nextflow@v3
         with:
           version: '26.04.2'
@@ -39,14 +45,17 @@ jobs:
           java-distribution: 'temurin'
 
       - name: Install nf-test
+        # nf-test executes the Week 6 five-process stub contract.
         uses: nf-core/setup-nf-test@v1
         with:
           version: '0.9.3'
 
       - name: Run the shared fast CI suite
+        # This is the same command documented for local development.
         run: bash content/resources/week-07/scripts/run_fast_ci.sh
 
       - name: Keep test reports and sandbox outputs
+        # always() preserves evidence even when an earlier test fails.
         if: always()
         uses: actions/upload-artifact@v7
         with:

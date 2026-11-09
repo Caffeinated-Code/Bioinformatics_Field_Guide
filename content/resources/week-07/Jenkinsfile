@@ -1,4 +1,5 @@
 pipeline {
+  // Run only on an agent prepared with the versions documented in README.md.
   agent { label 'bioinformatics-ci' }
 
   options {
@@ -10,36 +11,42 @@ pipeline {
   stages {
     stage('Environment') {
       steps {
+        // Record tool versions before any test changes the workspace.
         sh 'bash content/resources/week-07/scripts/run_fast_ci.sh versions'
       }
     }
 
     stage('Lint') {
       steps {
+        // Parse the Week 6 Nextflow project without executing biological tools.
         sh 'bash content/resources/week-07/scripts/run_fast_ci.sh lint'
       }
     }
 
     stage('Pipeline contract') {
       steps {
+        // Use nf-test and process stubs to exercise the five-stage dataflow.
         sh 'bash content/resources/week-07/scripts/run_fast_ci.sh contract'
       }
     }
 
     stage('Tiny FASTQ sandbox') {
       steps {
+        // Run the real two-process sandbox plus file and unittest checks.
         sh 'bash content/resources/week-07/scripts/run_fast_ci.sh sandbox'
       }
     }
 
     stage('Expected failure') {
       steps {
+        // Prove that the QC gate rejects three reads when four are required.
         sh 'bash content/resources/week-07/scripts/run_fast_ci.sh negative'
       }
     }
   }
 
   post {
+    // Reports and small outputs remain available even when a stage fails.
     always {
       script {
         if (fileExists('build/test-results/nf-test.xml')) {

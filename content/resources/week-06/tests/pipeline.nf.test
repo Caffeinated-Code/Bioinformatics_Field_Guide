@@ -1,24 +1,36 @@
 nextflow_pipeline {
 
+    // Human-readable test-suite name shown by nf-test.
     name "Week 6 ONT pipeline wiring"
+
+    // main.nf is resolved from the Week 6 project directory.
     script "main.nf"
 
+    // One scenario: run the complete five-process graph with cheap stand-ins.
     test("runs all five stages with lightweight stubs") {
 
+        // Tell Nextflow to execute each process's stub block, not its real tools.
         options "-stub-run"
 
         when {
             params {
+                // baseDir is the Week 6 project root during this nf-test run.
                 input = "$baseDir/tests/data/samplesheet.csv"
                 reference = "$baseDir/tests/data/tiny.fa"
                 annotation = "$baseDir/tests/data/tiny.gtf"
+                // outputDir is an isolated temporary directory created by nf-test.
                 outdir = "$outputDir"
             }
         }
 
         then {
+            // The workflow returned exit status 0.
             assert workflow.success
+
+            // One sample should schedule all five expected process tasks.
             assert workflow.trace.tasks().size() == 5
+
+            // Make the absence of failed tasks explicit in the report.
             assert workflow.trace.failed().size() == 0
         }
     }
