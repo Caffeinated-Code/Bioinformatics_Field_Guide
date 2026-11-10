@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A hands-on Nextflow workshop for testing scientific code,
-automating CI, and releasing changes safely"
+      content="A beginner-friendly Nextflow workshop for testing
+scientific code and releasing changes with confidence"
     />
-    <meta property="og:title" content="Build Reliable Bioinformatics
+    <meta property="og:title" content="CI/CD for Reliable Bioinformatics
 Pipelines" />
     <meta
       property="og:description"
-      content="A hands-on Nextflow workshop for testing scientific code,
-automating CI, and releasing changes safely"
+      content="A beginner-friendly Nextflow workshop for testing
+scientific code and releasing changes with confidence"
     />
     <meta property="og:type" content="article" />
-    <title>Build Reliable Bioinformatics
+    <title>CI/CD for Reliable Bioinformatics
 Pipelines | Bioinformatics Field Guide</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,10 +59,10 @@ Pipelines | Bioinformatics Field Guide</title>
             <a class="back-link" href="index.html"><i class="ri-arrow-left-line" aria-hidden="true"></i> Field Guide home</a>
             <p class="eyebrow">Week 7 · 30-minute guided workshop +
 runnable lab</p>
-            <h1>Build Reliable Bioinformatics Pipelines</h1>
-                        <p class="article-hero__subtitle">A hands-on
-Nextflow workshop for testing scientific code, automating CI, and
-releasing changes safely</p>
+            <h1>CI/CD for Reliable Bioinformatics Pipelines</h1>
+                        <p class="article-hero__subtitle">A
+beginner-friendly Nextflow workshop for testing scientific code and
+releasing changes with confidence</p>
                         <div class="article-meta">
               <span><i class="ri-user-smile-line" aria-hidden="true"></i> Beginner friendly</span>
               <span><i class="ri-terminal-box-line" aria-hidden="true"></i> Tested commands</span>
@@ -85,8 +85,8 @@ Jenkins</p>
         <aside class="toc" aria-label="Table of contents">
           <p class="toc__title">On this page</p>
           <ul>
-          <li><a href="#build-reliable-bioinformatics-pipelines"
-          id="toc-build-reliable-bioinformatics-pipelines">Build
+          <li><a href="#cicd-for-reliable-bioinformatics-pipelines"
+          id="toc-cicd-for-reliable-bioinformatics-pipelines">CI/CD for
           Reliable Bioinformatics Pipelines</a>
           <ul>
           <li><a href="#the-mental-model-before-the-code"
@@ -134,7 +134,7 @@ Jenkins</p>
         </aside>
 
         <article class="article-content">
-          <h1 id="build-reliable-bioinformatics-pipelines">Build
+          <h1 id="cicd-for-reliable-bioinformatics-pipelines">CI/CD for
           Reliable Bioinformatics Pipelines</h1>
           <div class="scenario-panel">
           <p class="eyebrow">
@@ -143,22 +143,19 @@ Jenkins</p>
           <p>
           A translational team reruns its Oxford Nanopore isoform
           pipeline before choosing targets for wet-lab validation. The
-          workflow finishes, but the transcript count has changed. Did a
-          parameter change? Did a tool update? Did one sample disappear?
-          Or is the result biologically real?
+          workflow finishes, but the transcript count changed. Was it
+          the biology? A parameter? A tool update? A missing sample?
           </p>
           <p>
-          <strong>“The pipeline completed” is not enough evidence. A
-          useful test suite tells the team which expectation changed,
-          where it changed, and whether the release should
-          stop.</strong>
+          <strong>A completed run is not proof of a correct result.
+          Tests show what changed before that result reaches the
+          laboratory.</strong>
           </p>
           </div>
           <p><strong>Takeaway:</strong> Start with one tiny input whose
-          answer you know. Test that the workflow runs, its files follow
-          their contracts, its values are correct, its rules remain
-          true, and bad input is rejected. Then automate the same
-          commands.</p>
+          answer you know. Check that the workflow runs, creates the
+          right files, returns the right values, and rejects bad input.
+          Then let CI run those checks for every code change.</p>
           <p><a href="week-05-nextflow-nfcore-rnaseq.html">Week 5</a>
           introduced Nextflow. <a
           href="week-06-build-custom-nextflow-ont-pipeline.html">Week
@@ -186,16 +183,16 @@ Jenkins</p>
           <tbody>
           <tr>
           <td><strong>fixture</strong></td>
-          <td>a small input chosen for testing; here, a three-read
+          <td>a small input used for testing; here, a three-read
           FASTQ</td>
           </tr>
           <tr>
           <td><strong>test</strong></td>
-          <td>one question about expected behavior</td>
+          <td>one question about what the code should do</td>
           </tr>
           <tr>
           <td><strong>assertion</strong></td>
-          <td>the exact condition that must be true</td>
+          <td>one condition that must be true</td>
           </tr>
           <tr>
           <td><strong>exit code</strong></td>
@@ -204,13 +201,12 @@ Jenkins</p>
           </tr>
           <tr>
           <td><strong>test harness</strong></td>
-          <td>the script that prepares inputs, runs code, and checks
-          results</td>
+          <td>a script that runs the test and checks its result</td>
           </tr>
           <tr>
           <td><strong>regression</strong></td>
-          <td>behavior or a result that changed after code, data, or
-          dependencies changed</td>
+          <td>a result that changed after the code or software
+          changed</td>
           </tr>
           <tr>
           <td><strong>CI</strong></td>
@@ -233,8 +229,8 @@ Jenkins</p>
   assertion --&gt; decision{&quot;Pass?&quot;}
   decision --&gt;|No| stop[&quot;Stop and investigate&quot;]
   decision --&gt;|Yes| next[&quot;Continue to deeper tests&quot;]</code></pre>
-          <p>CI does not invent these expectations. CI is simply another
-          computer that runs them consistently.</p>
+          <p>You decide what is correct. CI is simply another computer
+          that checks those decisions every time the code changes.</p>
           <h2 id="a-five-minute-first-win">A Five-Minute First Win</h2>
           <h3 id="clone-both-weeks-in-one-step">Clone Both Weeks In One
           Step</h3>
@@ -328,11 +324,13 @@ minimum_reads   3</code></pre>
   negative --&gt; wiring[&quot;7. Workflow contract&lt;br/&gt;Is the larger graph connected?&quot;]</code></pre>
           <h3 id="lint-read-the-code-without-running-it">1. Lint: Read
           The Code Without Running It</h3>
-          <p><strong>Linting is static analysis.</strong> A linter reads
-          source code and reports suspicious or invalid structure before
-          the program runs. It is similar to a spelling and grammar
-          check for code, but it understands Nextflow syntax and
-          configuration.</p>
+          <p><strong>Real-life situation:</strong> You edit a Nextflow
+          process and forget one closing brace. Without linting, the job
+          may wait in an HPC queue before it fails. That wastes time and
+          compute.</p>
+          <p><strong>What this test does:</strong> Linting reads the
+          code without running the pipeline. Think of it as a grammar
+          check for Nextflow scripts and configuration files.</p>
           <div class="sourceCode" id="cb8"><pre
           class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parse every Nextflow script and configuration file in Week 6.</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> lint content/resources/week-06</span></code></pre></div>
@@ -346,7 +344,8 @@ minimum_reads   3</code></pre>
 Nextflow linting complete!
 1 file had 1 error</code></pre>
           <p><code>&lt;EOF&gt;</code> means “end of file.” Nextflow
-          reached the end while still expecting more code.</p>
+          reached the last line while it was still waiting for more
+          code.</p>
           <table>
           <colgroup>
           <col style="width: 50%" />
@@ -377,36 +376,38 @@ Nextflow linting complete!
           </tr>
           </tbody>
           </table>
-          <p>Run lint first because it is cheap. A syntax error makes
-          every later failure harder to interpret.</p>
+          <p>Run lint before every commit. It is fast, and it removes
+          simple syntax errors before deeper tests begin.</p>
           <h3 id="smoke-test-run-the-smallest-meaningful-path">2. Smoke
           Test: Run The Smallest Meaningful Path</h3>
-          <p>A smoke test asks one broad question: <strong>can a small
-          representative input enter the workflow and reach the expected
-          end without a crash?</strong> It is deliberately shallow. It
-          finds major breakage quickly.</p>
+          <p><strong>Real-life situation:</strong> A container was
+          updated or a new process was added. Before running 300
+          samples, you need to know whether one tiny sample can still
+          travel through the main workflow.</p>
+          <p><strong>What this test does:</strong> A smoke test runs the
+          smallest useful path from input to output. It answers one
+          question: <strong>can the workflow finish without
+          crashing?</strong></p>
           <p>The sandbox runs this real path:</p>
           <pre class="mermaid"><code>flowchart LR
   fastq[&quot;tiny.fastq&lt;br/&gt;3 reads&quot;] --&gt; summary[&quot;SUMMARIZE_READS&lt;br/&gt;exit 0&quot;]
   summary --&gt; metrics[&quot;read_qc.tsv&quot;]
   metrics --&gt; gate[&quot;QUALITY_GATE&lt;br/&gt;exit 0&quot;]
   gate --&gt; decision[&quot;quality_gate.tsv&lt;br/&gt;PASS&quot;]</code></pre>
-          <p>The harness performs the smoke test with the
-          <code>nextflow run</code> command shown in the first-win
-          section. Nextflow then schedules <code>SUMMARIZE_READS</code>.
-          Only after its metrics file is available can
-          <code>QUALITY_GATE</code> run.</p>
+          <p>The wrapper uses the <code>nextflow run</code> command from
+          the first-win section. Nextflow runs
+          <code>SUMMARIZE_READS</code> first. When its metrics file is
+          ready, Nextflow sends that file to
+          <code>QUALITY_GATE</code>.</p>
           <p>These log lines confirm both tasks were submitted:</p>
           <pre class="text"><code>Submitted process &gt; SUMMARIZE_READS (tiny)
 Submitted process &gt; QUALITY_GATE (1)</code></pre>
           <h4 id="how-does-the-smoke-test-know-it-failed">How Does The
           Smoke Test Know It Failed?</h4>
-          <p>Shell commands report an <strong>exit code</strong>.
-          <code>0</code> means success. Any non-zero value means
-          failure. The harness starts with
-          <code>set -euo pipefail</code>, so an unexpected non-zero
-          <code>nextflow run</code> status stops the script
-          immediately.</p>
+          <p>Every shell command returns an <strong>exit code</strong>.
+          <code>0</code> means success. Any other number means failure.
+          The wrapper uses <code>set -euo pipefail</code>, so an
+          unexpected failure stops the test immediately.</p>
           <table>
           <colgroup>
           <col style="width: 30%" />
@@ -453,19 +454,25 @@ Submitted process &gt; QUALITY_GATE (1)</code></pre>
           </tr>
           </tbody>
           </table>
-          <p>Nextflow itself returns non-zero to CI when a process
-          fails. Its task log preserves the process-level exit status,
-          which is often more specific. In automation, the first rule is
-          simple: <strong>zero continues; non-zero stops</strong>.</p>
-          <p>A smoke test proves the path executes. It does not prove
-          the files have the right schema or values. Those are separate
-          tests.</p>
+          <p>When a process fails, Nextflow also returns a non-zero code
+          to CI. The task log keeps the more specific process code. The
+          basic rule is simple: <strong>zero continues; non-zero
+          stops</strong>.</p>
+          <p>A smoke test proves that the path can run. It does not
+          prove that the output is correct. The next tests check the
+          files and values.</p>
           <h3
           id="file-contract-follow-the-channel-and-check-the-handoff">3.
           File Contract: Follow The Channel And Check The Handoff</h3>
-          <p>A file contract says what a process promises to hand to the
-          next step: filename pattern, format, schema, and basic
-          integrity.</p>
+          <p><strong>Real-life situation:</strong> A tool update changes
+          <code>read_qc.tsv</code> to <code>read_metrics.tsv</code>, or
+          renames the <code>metric</code> column. The upstream process
+          finishes, but the downstream step can no longer read its
+          output.</p>
+          <p><strong>What this test does:</strong> A file contract
+          checks what one process promises to give the next process. It
+          can check the filename, format, columns, and whether the file
+          contains data.</p>
           <p>Start with the exact Nextflow wiring:</p>
           <pre class="nextflow"><code>output:
 // SUMMARIZE_READS must create this file and names its output channel &quot;metrics&quot;.
@@ -481,23 +488,24 @@ workflow {
   // The consumer waits for the producer&#39;s named metrics output.
   QUALITY_GATE(SUMMARIZE_READS.out.metrics)
 }</code></pre>
-          <p>A <strong>channel</strong> is a data stream between
-          Nextflow processes. Here it carries a file path:</p>
+          <p>A <strong>channel</strong> moves data between Nextflow
+          processes. In this example, it carries a file path:</p>
           <ol type="1">
           <li><code>reads_ch</code> emits the FASTQ path.</li>
           <li><code>SUMMARIZE_READS</code> receives that path through
           <code>input: path reads</code>.</li>
-          <li>The process writes <code>read_qc.tsv</code> in its
-          isolated work directory.</li>
+          <li>The process writes <code>read_qc.tsv</code> in its own
+          work directory.</li>
           <li><code>output: path 'read_qc.tsv', emit: metrics</code>
-          verifies the file exists and emits it.</li>
+          checks that the file exists and sends it onward.</li>
           <li><code>QUALITY_GATE</code> receives that emitted file
           through <code>input: path metrics</code>.</li>
-          <li><code>publishDir</code> copies successful declared outputs
-          from <code>work/</code> into the readable result folder.</li>
+          <li><code>publishDir</code> copies successful outputs from
+          <code>work/</code> into the result folder.</li>
           </ol>
-          <p>Nextflow validates the declared filename. The Bash harness
-          adds two content-level checks:</p>
+          <p>Nextflow checks the declared filename. The Bash wrapper
+          then checks that the file is not empty and has the expected
+          header:</p>
           <div class="sourceCode" id="cb14"><pre
           class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> result_file <span class="kw">in</span> read_qc.tsv quality_gate.tsv<span class="kw">;</span> <span class="cf">do</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">result_path</span><span class="op">=</span><span class="st">&quot;</span><span class="va">${outdir}</span><span class="st">/</span><span class="va">${result_file}</span><span class="st">&quot;</span></span>
@@ -517,10 +525,8 @@ workflow {
 <span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co"># This line is reached only when every check above succeeded.</span></span>
 <span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="bu">printf</span> <span class="st">&#39;File contract: PASS (two non-empty TSV files with metric/value headers)\n&#39;</span></span></code></pre></div>
-          <p>The <code>PASS</code> message is not produced by Nextflow.
-          It is printed by the wrapper <strong>after</strong> both files
-          survive every condition. That control flow is why seeing the
-          message has meaning.</p>
+          <p>Nextflow does not print the <code>PASS</code> message. The
+          wrapper prints it only after both files pass every check.</p>
           <table>
           <colgroup>
           <col style="width: 50%" />
@@ -556,21 +562,24 @@ workflow {
           </tr>
           </tbody>
           </table>
-          <p>For BAM, use <code>samtools quickcheck</code> for basic
-          integrity. For VCF, parse it with <code>bcftools</code>. For
-          JSON, load it with a JSON parser. Format-aware checks are
-          stronger than merely asking whether a file exists.</p>
+          <p>Use a format-aware check when possible. Use
+          <code>samtools quickcheck</code> for BAM,
+          <code>bcftools</code> for VCF, and a JSON parser for JSON. A
+          file can exist and still be broken.</p>
           <h3 id="known-answer-test-turn-one-fact-into-code">4.
           Known-Answer Test: Turn One Fact Into Code</h3>
-          <p>Python’s <code>unittest</code> is a <strong>test
-          framework</strong>, not a promise that every test written with
-          it is a pure unit test. A pure unit test isolates one
-          function. This example reads files from the completed sandbox,
-          so it is more accurately a <strong>known-answer output
-          test</strong>. The same <code>unittest</code> syntax,
-          discovery, and assertions work for both.</p>
-          <p>The easiest first automated test starts with a fact you can
-          calculate by hand.</p>
+          <p><strong>Real-life situation:</strong> You change a read
+          filter. The workflow still finishes, but it now reports
+          <code>35</code> bases instead of the correct answer,
+          <code>36</code>. A smoke test will not catch this because
+          nothing crashed.</p>
+          <p><strong>What this test does:</strong> A known-answer test
+          uses a tiny input whose correct result you can calculate by
+          hand. It compares the pipeline’s answer with your answer.</p>
+          <p>Python’s <code>unittest</code> is the test framework used
+          here. A pure unit test checks one isolated function. This
+          example checks a completed pipeline output, so it is a
+          known-answer output test. Both use the same assertions.</p>
           <p>This is the core structure from
           <code>test_qc.py</code>:</p>
           <div class="sourceCode" id="cb15"><pre
@@ -641,10 +650,9 @@ workflow {
           </tr>
           </tbody>
           </table>
-          <p>The test does not return <code>True</code>. A test passes
-          when it reaches the end without raising an exception. An
-          assertion raises a detailed exception when its expectation is
-          false.</p>
+          <p>The test does not return <code>True</code>. It passes when
+          it reaches the end without an error. If an assertion is false,
+          <code>unittest</code> reports the mismatch.</p>
           <h4 id="a-five-step-recipe-for-your-own-test">A Five-Step
           Recipe For Your Own Test</h4>
           <ol type="1">
@@ -705,11 +713,10 @@ AssertionError: 35 != 36
 
 Ran 6 tests in 0.001s
 FAILED (failures=1)</code></pre>
-          <p>That is the value of a small test: one wrong fact produces
-          one local, readable failure. To make it a pure unit test, move
-          the base-counting calculation into a function and call that
-          function directly with the three known sequences, without
-          launching Nextflow.</p>
+          <p>One wrong value now creates one clear failure. To make this
+          a pure unit test, move the base-counting calculation into a
+          function. Then call that function directly with the three
+          known sequences, without running Nextflow.</p>
           <h4 id="quick-check-write-the-next-test">Quick Check: Write
           The Next Test</h4>
           <p>Suppose a fixture contains reads of 4, 6, and 10 bases. The
@@ -732,10 +739,15 @@ FAILED (failures=1)</code></pre>
           <h3
           id="invariant-test-protect-a-rule-that-should-always-hold">5.
           Invariant Test: Protect A Rule That Should Always Hold</h3>
-          <p>A known-answer test is tied to one fixture: this file must
-          contain <code>36</code> bases. An <strong>invariant</strong>
-          is a relationship that should remain true for every valid
-          input.</p>
+          <p><strong>Real-life situation:</strong> Transcript counts may
+          change slightly after a valid tool update. You may not know
+          the exact new count. You still know that an allele frequency
+          cannot be above <code>1</code>, an interval must have
+          <code>start &lt; end</code>, and a report cannot say
+          <code>PASS</code> when its threshold failed.</p>
+          <p><strong>What this test does:</strong> An invariant protects
+          a rule that should always be true. It can catch impossible
+          output even when you do not know the exact answer.</p>
           <table>
           <colgroup>
           <col style="width: 50%" />
@@ -768,11 +780,10 @@ FAILED (failures=1)</code></pre>
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertLessEqual(minimum, mean)</span>
 <span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertLessEqual(mean, maximum)</span></code></pre></div>
-          <p>The QC table has another consistency rule. If it says
-          <code>PASS</code>, the observed read count must meet or exceed
-          the required minimum. A table that says <code>PASS</code>,
-          <code>reads = 2</code>, and <code>minimum_reads = 3</code>
-          contradicts itself.</p>
+          <p>The QC table has another rule. If it says
+          <code>PASS</code>, the read count must meet the minimum. A
+          table with <code>PASS</code>, <code>reads = 2</code>, and
+          <code>minimum_reads = 3</code> contradicts itself.</p>
           <div class="sourceCode" id="cb19"><pre
           class="sourceCode python"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> test_quality_gate(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="va">None</span>:</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>.assertEqual(<span class="va">self</span>.gate[<span class="st">&quot;status&quot;</span>], <span class="st">&quot;PASS&quot;</span>)</span>
@@ -792,13 +803,17 @@ FAILED (failures=1)</code></pre>
           <li>proportions sum to approximately <code>1</code>, within a
           stated numeric tolerance</li>
           </ul>
-          <p>Invariants are powerful because they can catch impossible
-          outputs even when you do not know every exact answer in
-          advance.</p>
+          <p>Use invariants for rules that must hold across many
+          datasets, not just one fixture.</p>
           <h3 id="expected-failure-test-prove-bad-input-is-rejected">6.
           Expected-Failure Test: Prove Bad Input Is Rejected</h3>
-          <p>A positive test shows that valid input works. It does not
-          show that the guardrail works. We also need a negative
+          <p><strong>Real-life situation:</strong> A samplesheet is
+          missing a required column, or a sample fails QC. The pipeline
+          must stop. If the validation code is broken, bad input may
+          continue into a report that looks legitimate.</p>
+          <p><strong>What this test does:</strong> An expected-failure
+          test gives the pipeline invalid input and checks that it stops
+          for the intended reason. This is also called a negative
           test.</p>
           <p>The positive sandbox has three reads and requires at least
           three. The negative case keeps the same FASTQ but raises the
@@ -838,23 +853,29 @@ FAILED (failures=1)</code></pre>
           <p>Expected output:</p>
           <pre class="text"><code>Expected-failure test: PASS (Nextflow exit code 1)
   QC failed: expected at least 4 reads, observed 3.</code></pre>
-          <p>Why check the message as well as the exit code? A missing
-          <code>nextflow</code> executable, invalid syntax, and a
-          correct QC rejection can all produce non-zero results. Only
-          the expected message proves that the intended guardrail caused
-          the failure.</p>
+          <p>Why check both the code and the message? A missing program,
+          a syntax error, and a valid QC rejection can all return
+          non-zero. The expected message proves that the correct
+          guardrail stopped the run.</p>
           <h3 id="workflow-contract-use-stubs-to-test-a-larger-graph">7.
           Workflow Contract: Use Stubs To Test A Larger Graph</h3>
-          <p>The Week 6 workflow has five tool-heavy processes:</p>
+          <p><strong>Real-life situation:</strong> You rename a channel
+          or move a process into a module. Running NanoPlot, minimap2,
+          samtools, IsoQuant, and SQANTI3 after every small edit would
+          be slow. You first need a cheap way to check that the pipeline
+          is still connected.</p>
+          <p><strong>What this test does:</strong> A workflow-contract
+          test checks the process graph, channel connections, metadata,
+          and output names. It uses lightweight <strong>stubs</strong>
+          instead of the real tools.</p>
+          <p>The Week 6 workflow has five processes:</p>
           <pre class="text"><code>FASTQ -&gt; FASTQ_QC
      \-&gt; ALIGN_MINIMAP2 -&gt; ALIGNMENT_QC
                         \-&gt; ISOQUANT_DISCOVERY -&gt; SQANTI3_ANNOTATION</code></pre>
-          <p>Running NanoPlot, minimap2, samtools, IsoQuant, and SQANTI3
-          on every edit would make feedback slow. A
-          <strong>stub</strong> is a lightweight replacement for a
-          process’s real <code>script</code> block. It creates outputs
-          with the same names and channel shape without running the
-          expensive tool.</p>
+          <p>A stub is a short replacement for a process’s real
+          <code>script</code> block. It creates outputs with the
+          expected names and channel shape. It does not run the
+          expensive command.</p>
           <p>The real alignment script and its stub live together:</p>
           <pre class="nextflow"><code>script:
 &quot;&quot;&quot;
@@ -870,12 +891,12 @@ stub:
 printf &#39;stub alignment for ${meta.id}\n&#39; &gt; ${meta.id}.sorted.bam
 printf &#39;stub index for ${meta.id}\n&#39; &gt; ${meta.id}.sorted.bam.bai
 &quot;&quot;&quot;</code></pre>
-          <p>The stub BAM is plain placeholder text, not a valid
-          alignment. That is acceptable because every downstream process
-          is also stubbed and does not inspect BAM content. Use a real
-          integration test when file content matters.</p>
-          <p><code>nf-test</code> launches the pipeline in stub mode and
-          checks its execution trace. Here is the complete test,
+          <p>The stub BAM is placeholder text, not a real alignment.
+          That is fine for checking the workflow graph because the
+          downstream processes are also stubbed. Use a real integration
+          test when file content matters.</p>
+          <p><code>nf-test</code> starts the pipeline in stub mode and
+          checks the execution trace. Here is the complete test,
           documented line by line:</p>
           <div class="sourceCode" id="cb25"><pre
           class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>nextflow_pipeline <span class="op">{</span>                         <span class="co">// Declare a whole-pipeline nf-test suite.</span></span>
@@ -907,17 +928,22 @@ printf &#39;stub index for ${meta.id}\n&#39; &gt; ${meta.id}.sorted.bam.bai
           <p>Expected output:</p>
           <pre class="text"><code>Test &#39;runs all five stages with lightweight stubs&#39; PASSED
 SUCCESS: Executed 1 tests</code></pre>
-          <p>This proves the samplesheet can be parsed, channels
-          connect, protocol metadata reaches the graph, all five tasks
-          can be scheduled, and output names support downstream wiring.
-          It does <strong>not</strong> prove the placeholder BAM is
-          valid or the discovered isoforms are correct.</p>
+          <p>This proves that the samplesheet can be parsed, the
+          channels connect, and all five tasks can be scheduled. It does
+          <strong>not</strong> prove that the BAM is valid or that the
+          isoforms are correct. Stubs test wiring, not biology.</p>
           <h2
           id="scientific-regression-test-results-not-just-software">Scientific
           Regression: Test Results, Not Just Software</h2>
-          <p>A software regression test asks, “did behavior change?” A
-          scientific regression test asks, “did a reviewed analytical
-          result change beyond an acceptable limit?”</p>
+          <p><strong>Real-life situation:</strong> You update minimap2
+          or IsoQuant. The pipeline passes every software test, but the
+          number of transcript models drops from <code>30</code> to
+          <code>26</code>. That change may be expected, or it may affect
+          the scientific conclusion.</p>
+          <p><strong>What this test does:</strong> A scientific
+          regression test compares important results with a reviewed
+          baseline. It stops the release when a change is larger than
+          the allowed tolerance.</p>
           <p>The <a
           href="week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project">Week
           6 public-data run</a> produced these versioned expectations
@@ -926,9 +952,8 @@ SUCCESS: Executed 1 tests</code></pre>
 primary_alignments             439       0
 transcript_models              30        0
 sqanti_classification_rows     30        0</code></pre>
-          <p>These are properties of that simulated fixture and
-          toolchain. They are not universal expectations for ONT
-          data.</p>
+          <p>These values belong to this simulated fixture and pinned
+          toolchain. They are not universal targets for ONT data.</p>
           <h3 id="the-reproducible-comparison">The Reproducible
           Comparison</h3>
           <p>The project includes three files:</p>
@@ -960,10 +985,10 @@ primary_alignments             439  439  0  0   PASS
 transcript_models              30   26   0  -4  FAIL
 sqanti_classification_rows     30   26   0  -4  FAIL
 Scientific regression: FAIL</code></pre>
-          <p>The comparator exits <code>0</code> only when all metrics
-          pass. It exits <code>1</code> for changed, missing, or
-          unexpected metrics, so a scheduled CI job can stop
-          automatically.</p>
+          <p>The comparator exits <code>0</code> when every metric
+          passes. It exits <code>1</code> when a metric changed too
+          much, is missing, or was not expected. CI can use that exit
+          code to stop a release.</p>
           <h3 id="collect-the-metrics-from-a-real-week-6-run">Collect
           The Metrics From A Real Week 6 Run</h3>
           <p>The included collector makes the metric definitions
@@ -1034,19 +1059,17 @@ Scientific regression: FAIL</code></pre>
           </tr>
           </tbody>
           </table>
-          <p>The included comparator implements absolute tolerances. A
-          production suite may also use relative percent change,
-          correlation, F1 score, interval overlap, or distribution
-          tests.</p>
-          <p>Version the baseline beside the code. Record the fixture
-          checksum, reference and annotation releases, tool versions,
-          parameter file, and reviewer. Never update a baseline
-          automatically just to make CI green. Investigate first,
-          document the reason, and review the new expectation.</p>
+          <p>The included comparator uses absolute tolerances. Other
+          projects may use percent change, correlation, F1 score,
+          interval overlap, or distribution tests.</p>
+          <p>Store the baseline beside the code. Record the fixture
+          checksum, references, tool versions, parameters, and reviewer.
+          Never change a baseline only to make CI green. Investigate the
+          difference first.</p>
           <h2 id="choose-test-cases-then-choose-when-they-run">Choose
           Test Cases, Then Choose When They Run</h2>
-          <p>Different fixtures answer different questions. A useful
-          suite includes more than one happy path.</p>
+          <p>A pipeline needs more than one happy-path example. Each
+          case below answers a different question.</p>
           <table>
           <colgroup>
           <col style="width: 25%" />
@@ -1115,16 +1138,16 @@ Scientific regression: FAIL</code></pre>
           </tr>
           </tbody>
           </table>
-          <p>Do not create a tiny fixture by blindly taking the first
-          records from a large file. Preserve the feature under test: a
-          splice junction, stranded read, known isoform, low-quality
-          sample, or metadata error.</p>
+          <p>Your tiny fixture must still contain the feature you want
+          to test. Keep the splice junction, stranded read, known
+          isoform, low-quality sample, or metadata error. The first few
+          records from a large file may not contain any of them.</p>
           <h2 id="what-the-complete-fast-suite-means">What The Complete
           Fast Suite Means</h2>
-          <p>In this project, <strong>complete fast suite</strong> has a
-          precise meaning: every pull-request-safe check that should
-          finish without downloading the multi-gigabyte Week 6 container
-          or running the public-data analysis.</p>
+          <p>Here, the <strong>complete fast suite</strong> means every
+          check that is quick enough for a pull request. It does not
+          download the large Week 6 container or run the public
+          dataset.</p>
           <div class="sourceCode" id="cb35"><pre
           class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh</span></code></pre></div>
           <p>No argument defaults to <code>all</code>, which runs these
@@ -1177,22 +1200,25 @@ Scientific regression: FAIL</code></pre>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh contract</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh sandbox</span>
 <span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh negative</span></code></pre></div>
-          <p>The full public-data run and scientific regression belong
-          in scheduled or release testing. “Fast suite” does not mean
-          “complete scientific validation.”</p>
+          <p>Run the public dataset and scientific regression on a
+          schedule or before a release. A fast suite is useful, but it
+          is not complete scientific validation.</p>
           <h2
           id="automate-the-same-test-in-github-actions-and-jenkins">Automate
           The Same Test In GitHub Actions And Jenkins</h2>
-          <p>The automation platform should not contain your scientific
-          logic. It should call a versioned repository command. To make
-          the comparison concrete, both examples below run the same
-          small task:</p>
+          <p><strong>Real-life situation:</strong> The tests pass on
+          your laptop, but a teammate forgets to run them before
+          merging. CI removes that manual step.</p>
+          <p>Keep the test logic in the repository, not inside the
+          automation platform. GitHub Actions and Jenkins should call
+          the same versioned command:</p>
           <div class="sourceCode" id="cb37"><pre
           class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> content/resources/week-07/scripts/run_fast_ci.sh sandbox</span></code></pre></div>
           <h3 id="github-actions">GitHub Actions</h3>
           <p>GitHub reads YAML files from
-          <code>.github/workflows/</code>. An event starts a workflow, a
-          job receives a runner, and steps execute in order.</p>
+          <code>.github/workflows/</code>. A pull request starts the
+          workflow. GitHub creates a temporary runner and executes each
+          step in order.</p>
           <div class="sourceCode" id="cb38"><pre
           class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> Tiny FASTQ sandbox</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1268,11 +1294,9 @@ Scientific regression: FAIL</code></pre>
 <span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
 <span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
-          <p>The agent labeled <code>bioinformatics-ci</code> must
-          already provide Java 17, Nextflow 26.04.2, Bash, and Python 3.
-          For stronger isolation, maintain the agent as a versioned
-          container or machine image instead of installing tools
-          manually on every server.</p>
+          <p>The <code>bioinformatics-ci</code> agent needs Java 17,
+          Nextflow 26.04.2, Bash, and Python 3. A versioned container or
+          machine image makes that environment easier to reproduce.</p>
           <p>The <a
           href="https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-07/Jenkinsfile">complete
           Jenkinsfile</a> separates versions, lint, nf-test, sandbox,
@@ -1326,20 +1350,18 @@ Scientific regression: FAIL</code></pre>
           </tr>
           </tbody>
           </table>
-          <p>Use GitHub Actions when the repository is already on GitHub
-          and hosted runners fit the data policy. Use Jenkins when jobs
-          must reach an internal HPC cluster, private registry,
-          controlled S3 bucket, or established on-premises agent fleet.
-          Jenkins is flexible, but your team owns controller upgrades,
+          <p>Use GitHub Actions when the code is on GitHub and the data
+          can run on an approved runner. Use Jenkins when the job must
+          reach an internal HPC cluster, private registry, or controlled
+          network. With Jenkins, your team maintains the server,
           plugins, credentials, and agents.</p>
           <p>Never place protected patient data or production
           credentials on a public runner. Public CI should use
           synthetic, public, or explicitly approved fixtures.</p>
           <h2 id="ci-is-only-the-first-third">CI Is Only The First
           Third</h2>
-          <p>This guide has focused on CI because a release is unsafe
-          when basic tests are unclear. But CI, continuous delivery, and
-          continuous deployment solve different problems.</p>
+          <p>CI/CD is often used as one phrase, but it covers three
+          different jobs:</p>
           <pre class="mermaid"><code>flowchart LR
   change[&quot;Code change&quot;] --&gt; ci[&quot;CI&lt;br/&gt;test the change&quot;]
   ci --&gt; candidate[&quot;Delivery&lt;br/&gt;build an immutable candidate&quot;]
@@ -1380,8 +1402,7 @@ Scientific regression: FAIL</code></pre>
           </tr>
           </tbody>
           </table>
-          <p>For a pipeline, “deployment” rarely means publishing a web
-          page. It may mean:</p>
+          <p>For a bioinformatics pipeline, deployment may mean:</p>
           <ul>
           <li>publishing a versioned Nextflow release</li>
           <li>pushing a container image to a registry</li>
@@ -1410,22 +1431,20 @@ Scientific regression: FAIL</code></pre>
           <li>The previous approved digest remains available for
           rollback.</li>
           </ol>
-          <p>GitHub environments can place required reviewers and
-          protection rules before a deployment job. Jenkins can use an
-          <code>input</code> approval step and controlled credentials.
-          In both systems, the production job should receive an
-          immutable version or digest, not an unpinned
-          <code>latest</code> tag.</p>
+          <p>GitHub environments can require a reviewer before
+          deployment. Jenkins can pause at an <code>input</code>
+          approval step. In both systems, deploy the exact version or
+          container digest that was tested. Do not replace it with an
+          unpinned <code>latest</code> tag.</p>
           <p><strong>Recommendation:</strong> use continuous delivery
-          for most research and regulated bioinformatics pipelines. Keep
-          deployment controlled when a release can change scientific
-          interpretation, validated behavior, or patient-facing
-          decisions. Fully automatic deployment can still suit low-risk
-          internal tooling when rollback and monitoring are strong.</p>
-          <p>This section gives the end-to-end map. Signed containers,
-          SBOM generation, attestations, release approvals, rollback
-          drills, and cloud promotion are substantial enough for a
-          dedicated advanced implementation guide.</p>
+          for most research and regulated pipelines. Keep a human
+          approval before deployment when a release can change
+          scientific interpretation or patient-facing decisions. Fully
+          automatic deployment is better suited to low-risk internal
+          tools with reliable monitoring and rollback.</p>
+          <p>This is the end-to-end map. Signed containers, SBOMs,
+          attestations, rollback drills, and cloud promotion deserve a
+          separate advanced implementation guide.</p>
           <h2 id="playbooks-worth-bookmarking">Playbooks Worth
           Bookmarking</h2>
           <table>
@@ -1666,7 +1685,7 @@ Scientific regression: FAIL</code></pre>
                 Share this guide with someone learning bioinformatics, suggest an edit on GitHub,
                 or leave a question below.
               </p>
-              <div class="share-actions" data-share-title="Build
+              <div class="share-actions" data-share-title="CI/CD for
 Reliable Bioinformatics Pipelines">
                 <button class="share-button" type="button" data-share-native>
                   <i class="ri-share-forward-line" aria-hidden="true"></i>

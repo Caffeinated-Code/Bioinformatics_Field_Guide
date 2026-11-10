@@ -1,21 +1,21 @@
 ---
-title: "Build Reliable Bioinformatics Pipelines"
-subtitle: "A hands-on Nextflow workshop for testing scientific code, automating CI, and releasing changes safely"
+title: "CI/CD for Reliable Bioinformatics Pipelines"
+subtitle: "A beginner-friendly Nextflow workshop for testing scientific code and releasing changes with confidence"
 week: 7
 audience: ["beginner", "practitioner", "researcher", "industry"]
 reading_time: "30-minute guided workshop + runnable lab"
 asset: "Documented Nextflow test project with positive and negative fixtures, nf-test, scientific baselines, GitHub Actions, and Jenkins"
 ---
 
-# Build Reliable Bioinformatics Pipelines
+# CI/CD for Reliable Bioinformatics Pipelines
 
 <div class="scenario-panel">
 <p class="eyebrow">A biotech release is due Friday</p>
-<p>A translational team reruns its Oxford Nanopore isoform pipeline before choosing targets for wet-lab validation. The workflow finishes, but the transcript count has changed. Did a parameter change? Did a tool update? Did one sample disappear? Or is the result biologically real?</p>
-<p><strong>"The pipeline completed" is not enough evidence. A useful test suite tells the team which expectation changed, where it changed, and whether the release should stop.</strong></p>
+<p>A translational team reruns its Oxford Nanopore isoform pipeline before choosing targets for wet-lab validation. The workflow finishes, but the transcript count changed. Was it the biology? A parameter? A tool update? A missing sample?</p>
+<p><strong>A completed run is not proof of a correct result. Tests show what changed before that result reaches the laboratory.</strong></p>
 </div>
 
-**Takeaway:** Start with one tiny input whose answer you know. Test that the workflow runs, its files follow their contracts, its values are correct, its rules remain true, and bad input is rejected. Then automate the same commands.
+**Takeaway:** Start with one tiny input whose answer you know. Check that the workflow runs, creates the right files, returns the right values, and rejects bad input. Then let CI run those checks for every code change.
 
 [Week 5](week-05-nextflow-nfcore-rnaseq.html) introduced Nextflow. [Week 6](week-06-build-custom-nextflow-ont-pipeline.html) built an ONT workflow from FASTQ through IsoQuant and SQANTI3. This guide makes that workflow safer to change and release.
 
@@ -25,12 +25,12 @@ asset: "Documented Nextflow test project with positive and negative fixtures, nf
 
 | Term | Meaning in this guide |
 |---|---|
-| **fixture** | a small input chosen for testing; here, a three-read FASTQ |
-| **test** | one question about expected behavior |
-| **assertion** | the exact condition that must be true |
+| **fixture** | a small input used for testing; here, a three-read FASTQ |
+| **test** | one question about what the code should do |
+| **assertion** | one condition that must be true |
 | **exit code** | `0` means a command succeeded; non-zero means it failed |
-| **test harness** | the script that prepares inputs, runs code, and checks results |
-| **regression** | behavior or a result that changed after code, data, or dependencies changed |
+| **test harness** | a script that runs the test and checks its result |
+| **regression** | a result that changed after the code or software changed |
 | **CI** | run tests automatically when code changes |
 | **CD** | prepare and promote a tested, versioned release |
 
@@ -47,7 +47,7 @@ flowchart LR
   decision -->|Yes| next["Continue to deeper tests"]
 ```
 
-CI does not invent these expectations. CI is simply another computer that runs them consistently.
+You decide what is correct. CI is simply another computer that checks those decisions every time the code changes.
 
 ## A Five-Minute First Win
 
@@ -150,7 +150,9 @@ flowchart TB
 
 ### 1. Lint: Read The Code Without Running It
 
-**Linting is static analysis.** A linter reads source code and reports suspicious or invalid structure before the program runs. It is similar to a spelling and grammar check for code, but it understands Nextflow syntax and configuration.
+**Real-life situation:** You edit a Nextflow process and forget one closing brace. Without linting, the job may wait in an HPC queue before it fails. That wastes time and compute.
+
+**What this test does:** Linting reads the code without running the pipeline. Think of it as a grammar check for Nextflow scripts and configuration files.
 
 ```bash
 # Parse every Nextflow script and configuration file in Week 6.
@@ -173,7 +175,7 @@ Nextflow linting complete!
 1 file had 1 error
 ```
 
-`<EOF>` means "end of file." Nextflow reached the end while still expecting more code.
+`<EOF>` means "end of file." Nextflow reached the last line while it was still waiting for more code.
 
 | Lint can catch | Lint cannot prove |
 |---|---|
@@ -182,11 +184,13 @@ Nextflow linting complete!
 | deprecated or suspicious constructs | output values are biologically correct |
 | some style and code-quality issues | the workflow has enough memory at scale |
 
-Run lint first because it is cheap. A syntax error makes every later failure harder to interpret.
+Run lint before every commit. It is fast, and it removes simple syntax errors before deeper tests begin.
 
 ### 2. Smoke Test: Run The Smallest Meaningful Path
 
-A smoke test asks one broad question: **can a small representative input enter the workflow and reach the expected end without a crash?** It is deliberately shallow. It finds major breakage quickly.
+**Real-life situation:** A container was updated or a new process was added. Before running 300 samples, you need to know whether one tiny sample can still travel through the main workflow.
+
+**What this test does:** A smoke test runs the smallest useful path from input to output. It answers one question: **can the workflow finish without crashing?**
 
 The sandbox runs this real path:
 
@@ -198,7 +202,7 @@ flowchart LR
   gate --> decision["quality_gate.tsv<br/>PASS"]
 ```
 
-The harness performs the smoke test with the `nextflow run` command shown in the first-win section. Nextflow then schedules `SUMMARIZE_READS`. Only after its metrics file is available can `QUALITY_GATE` run.
+The wrapper uses the `nextflow run` command from the first-win section. Nextflow runs `SUMMARIZE_READS` first. When its metrics file is ready, Nextflow sends that file to `QUALITY_GATE`.
 
 These log lines confirm both tasks were submitted:
 
@@ -209,7 +213,7 @@ Submitted process > QUALITY_GATE (1)
 
 #### How Does The Smoke Test Know It Failed?
 
-Shell commands report an **exit code**. `0` means success. Any non-zero value means failure. The harness starts with `set -euo pipefail`, so an unexpected non-zero `nextflow run` status stops the script immediately.
+Every shell command returns an **exit code**. `0` means success. Any other number means failure. The wrapper uses `set -euo pipefail`, so an unexpected failure stops the test immediately.
 
 | Failure | Inner status | What the reader sees |
 |---|---:|---|
@@ -219,13 +223,15 @@ Shell commands report an **exit code**. `0` means success. Any non-zero value me
 | three reads are asked to satisfy a four-read gate | `1` from `QUALITY_GATE` | the explicit QC failure message |
 | process exits `0` but omits a declared output | Nextflow marks the task failed | `Missing output file(s)` |
 
-Nextflow itself returns non-zero to CI when a process fails. Its task log preserves the process-level exit status, which is often more specific. In automation, the first rule is simple: **zero continues; non-zero stops**.
+When a process fails, Nextflow also returns a non-zero code to CI. The task log keeps the more specific process code. The basic rule is simple: **zero continues; non-zero stops**.
 
-A smoke test proves the path executes. It does not prove the files have the right schema or values. Those are separate tests.
+A smoke test proves that the path can run. It does not prove that the output is correct. The next tests check the files and values.
 
 ### 3. File Contract: Follow The Channel And Check The Handoff
 
-A file contract says what a process promises to hand to the next step: filename pattern, format, schema, and basic integrity.
+**Real-life situation:** A tool update changes `read_qc.tsv` to `read_metrics.tsv`, or renames the `metric` column. The upstream process finishes, but the downstream step can no longer read its output.
+
+**What this test does:** A file contract checks what one process promises to give the next process. It can check the filename, format, columns, and whether the file contains data.
 
 Start with the exact Nextflow wiring:
 
@@ -246,16 +252,16 @@ workflow {
 }
 ```
 
-A **channel** is a data stream between Nextflow processes. Here it carries a file path:
+A **channel** moves data between Nextflow processes. In this example, it carries a file path:
 
 1. `reads_ch` emits the FASTQ path.
 2. `SUMMARIZE_READS` receives that path through `input: path reads`.
-3. The process writes `read_qc.tsv` in its isolated work directory.
-4. `output: path 'read_qc.tsv', emit: metrics` verifies the file exists and emits it.
+3. The process writes `read_qc.tsv` in its own work directory.
+4. `output: path 'read_qc.tsv', emit: metrics` checks that the file exists and sends it onward.
 5. `QUALITY_GATE` receives that emitted file through `input: path metrics`.
-6. `publishDir` copies successful declared outputs from `work/` into the readable result folder.
+6. `publishDir` copies successful outputs from `work/` into the result folder.
 
-Nextflow validates the declared filename. The Bash harness adds two content-level checks:
+Nextflow checks the declared filename. The Bash wrapper then checks that the file is not empty and has the expected header:
 
 ```bash
 for result_file in read_qc.tsv quality_gate.tsv; do
@@ -278,7 +284,7 @@ done
 printf 'File contract: PASS (two non-empty TSV files with metric/value headers)\n'
 ```
 
-The `PASS` message is not produced by Nextflow. It is printed by the wrapper **after** both files survive every condition. That control flow is why seeing the message has meaning.
+Nextflow does not print the `PASS` message. The wrapper prints it only after both files pass every check.
 
 | Breakage | Which layer catches it? |
 |---|---|
@@ -288,13 +294,15 @@ The `PASS` message is not produced by Nextflow. It is printed by the wrapper **a
 | `metric` is renamed to `measure` | Bash header comparison |
 | header is correct but `bases` is wrong | Python known-answer test |
 
-For BAM, use `samtools quickcheck` for basic integrity. For VCF, parse it with `bcftools`. For JSON, load it with a JSON parser. Format-aware checks are stronger than merely asking whether a file exists.
+Use a format-aware check when possible. Use `samtools quickcheck` for BAM, `bcftools` for VCF, and a JSON parser for JSON. A file can exist and still be broken.
 
 ### 4. Known-Answer Test: Turn One Fact Into Code
 
-Python's `unittest` is a **test framework**, not a promise that every test written with it is a pure unit test. A pure unit test isolates one function. This example reads files from the completed sandbox, so it is more accurately a **known-answer output test**. The same `unittest` syntax, discovery, and assertions work for both.
+**Real-life situation:** You change a read filter. The workflow still finishes, but it now reports `35` bases instead of the correct answer, `36`. A smoke test will not catch this because nothing crashed.
 
-The easiest first automated test starts with a fact you can calculate by hand.
+**What this test does:** A known-answer test uses a tiny input whose correct result you can calculate by hand. It compares the pipeline's answer with your answer.
+
+Python's `unittest` is the test framework used here. A pure unit test checks one isolated function. This example checks a completed pipeline output, so it is a known-answer output test. Both use the same assertions.
 
 This is the core structure from `test_qc.py`:
 
@@ -324,7 +332,7 @@ class TestTinyFastqQualityGate(unittest.TestCase):
 | `int(...)` | converts the TSV string `"36"` into the number `36` |
 | `assertEqual(actual, expected)` | passes when both values match; raises an assertion failure otherwise |
 
-The test does not return `True`. A test passes when it reaches the end without raising an exception. An assertion raises a detailed exception when its expectation is false.
+The test does not return `True`. It passes when it reaches the end without an error. If an assertion is false, `unittest` reports the mismatch.
 
 #### A Five-Step Recipe For Your Own Test
 
@@ -355,7 +363,7 @@ Ran 6 tests in 0.001s
 FAILED (failures=1)
 ```
 
-That is the value of a small test: one wrong fact produces one local, readable failure. To make it a pure unit test, move the base-counting calculation into a function and call that function directly with the three known sequences, without launching Nextflow.
+One wrong value now creates one clear failure. To make this a pure unit test, move the base-counting calculation into a function. Then call that function directly with the three known sequences, without running Nextflow.
 
 #### Quick Check: Write The Next Test
 
@@ -376,7 +384,9 @@ For calculations that are not deliberately rounded in the output, prefer `assert
 
 ### 5. Invariant Test: Protect A Rule That Should Always Hold
 
-A known-answer test is tied to one fixture: this file must contain `36` bases. An **invariant** is a relationship that should remain true for every valid input.
+**Real-life situation:** Transcript counts may change slightly after a valid tool update. You may not know the exact new count. You still know that an allele frequency cannot be above `1`, an interval must have `start < end`, and a report cannot say `PASS` when its threshold failed.
+
+**What this test does:** An invariant protects a rule that should always be true. It can catch impossible output even when you do not know the exact answer.
 
 | Test | Example |
 |---|---|
@@ -393,7 +403,7 @@ def test_lengths_are_ordered(self) -> None:
     self.assertLessEqual(mean, maximum)
 ```
 
-The QC table has another consistency rule. If it says `PASS`, the observed read count must meet or exceed the required minimum. A table that says `PASS`, `reads = 2`, and `minimum_reads = 3` contradicts itself.
+The QC table has another rule. If it says `PASS`, the read count must meet the minimum. A table with `PASS`, `reads = 2`, and `minimum_reads = 3` contradicts itself.
 
 ```python
 def test_quality_gate(self) -> None:
@@ -413,11 +423,13 @@ Other useful bioinformatics invariants include:
 - all reported contigs exist in the declared reference dictionary
 - proportions sum to approximately `1`, within a stated numeric tolerance
 
-Invariants are powerful because they can catch impossible outputs even when you do not know every exact answer in advance.
+Use invariants for rules that must hold across many datasets, not just one fixture.
 
 ### 6. Expected-Failure Test: Prove Bad Input Is Rejected
 
-A positive test shows that valid input works. It does not show that the guardrail works. We also need a negative test.
+**Real-life situation:** A samplesheet is missing a required column, or a sample fails QC. The pipeline must stop. If the validation code is broken, bad input may continue into a report that looks legitimate.
+
+**What this test does:** An expected-failure test gives the pipeline invalid input and checks that it stops for the intended reason. This is also called a negative test.
 
 The positive sandbox has three reads and requires at least three. The negative case keeps the same FASTQ but raises the threshold to four. This is the exact control logic in `test_expected_failure.sh`:
 
@@ -464,11 +476,15 @@ Expected-failure test: PASS (Nextflow exit code 1)
   QC failed: expected at least 4 reads, observed 3.
 ```
 
-Why check the message as well as the exit code? A missing `nextflow` executable, invalid syntax, and a correct QC rejection can all produce non-zero results. Only the expected message proves that the intended guardrail caused the failure.
+Why check both the code and the message? A missing program, a syntax error, and a valid QC rejection can all return non-zero. The expected message proves that the correct guardrail stopped the run.
 
 ### 7. Workflow Contract: Use Stubs To Test A Larger Graph
 
-The Week 6 workflow has five tool-heavy processes:
+**Real-life situation:** You rename a channel or move a process into a module. Running NanoPlot, minimap2, samtools, IsoQuant, and SQANTI3 after every small edit would be slow. You first need a cheap way to check that the pipeline is still connected.
+
+**What this test does:** A workflow-contract test checks the process graph, channel connections, metadata, and output names. It uses lightweight **stubs** instead of the real tools.
+
+The Week 6 workflow has five processes:
 
 ```text
 FASTQ -> FASTQ_QC
@@ -476,7 +492,7 @@ FASTQ -> FASTQ_QC
                         \-> ISOQUANT_DISCOVERY -> SQANTI3_ANNOTATION
 ```
 
-Running NanoPlot, minimap2, samtools, IsoQuant, and SQANTI3 on every edit would make feedback slow. A **stub** is a lightweight replacement for a process's real `script` block. It creates outputs with the same names and channel shape without running the expensive tool.
+A stub is a short replacement for a process's real `script` block. It creates outputs with the expected names and channel shape. It does not run the expensive command.
 
 The real alignment script and its stub live together:
 
@@ -497,9 +513,9 @@ printf 'stub index for ${meta.id}\n' > ${meta.id}.sorted.bam.bai
 """
 ```
 
-The stub BAM is plain placeholder text, not a valid alignment. That is acceptable because every downstream process is also stubbed and does not inspect BAM content. Use a real integration test when file content matters.
+The stub BAM is placeholder text, not a real alignment. That is fine for checking the workflow graph because the downstream processes are also stubbed. Use a real integration test when file content matters.
 
-`nf-test` launches the pipeline in stub mode and checks its execution trace. Here is the complete test, documented line by line:
+`nf-test` starts the pipeline in stub mode and checks the execution trace. Here is the complete test, documented line by line:
 
 ```groovy
 nextflow_pipeline {                         // Declare a whole-pipeline nf-test suite.
@@ -540,11 +556,13 @@ Test 'runs all five stages with lightweight stubs' PASSED
 SUCCESS: Executed 1 tests
 ```
 
-This proves the samplesheet can be parsed, channels connect, protocol metadata reaches the graph, all five tasks can be scheduled, and output names support downstream wiring. It does **not** prove the placeholder BAM is valid or the discovered isoforms are correct.
+This proves that the samplesheet can be parsed, the channels connect, and all five tasks can be scheduled. It does **not** prove that the BAM is valid or that the isoforms are correct. Stubs test wiring, not biology.
 
 ## Scientific Regression: Test Results, Not Just Software
 
-A software regression test asks, "did behavior change?" A scientific regression test asks, "did a reviewed analytical result change beyond an acceptable limit?"
+**Real-life situation:** You update minimap2 or IsoQuant. The pipeline passes every software test, but the number of transcript models drops from `30` to `26`. That change may be expected, or it may affect the scientific conclusion.
+
+**What this test does:** A scientific regression test compares important results with a reviewed baseline. It stops the release when a change is larger than the allowed tolerance.
 
 The [Week 6 public-data run](week-06-build-custom-nextflow-ont-pipeline.html#run-the-verified-toy-project) produced these versioned expectations with its pinned tools:
 
@@ -555,7 +573,7 @@ transcript_models              30        0
 sqanti_classification_rows     30        0
 ```
 
-These are properties of that simulated fixture and toolchain. They are not universal expectations for ONT data.
+These values belong to this simulated fixture and pinned toolchain. They are not universal targets for ONT data.
 
 ### The Reproducible Comparison
 
@@ -597,7 +615,7 @@ sqanti_classification_rows     30   26   0  -4  FAIL
 Scientific regression: FAIL
 ```
 
-The comparator exits `0` only when all metrics pass. It exits `1` for changed, missing, or unexpected metrics, so a scheduled CI job can stop automatically.
+The comparator exits `0` when every metric passes. It exits `1` when a metric changed too much, is missing, or was not expected. CI can use that exit code to stop a release.
 
 ### Collect The Metrics From A Real Week 6 Run
 
@@ -636,13 +654,13 @@ awk 'NR > 1 { count += 1 } END { print count + 0 }' classification.txt
 | runtime or memory | percentage budget | infrastructure has natural variation |
 | precision and recall on truth data | minimum acceptance thresholds | biological performance matters more than byte identity |
 
-The included comparator implements absolute tolerances. A production suite may also use relative percent change, correlation, F1 score, interval overlap, or distribution tests.
+The included comparator uses absolute tolerances. Other projects may use percent change, correlation, F1 score, interval overlap, or distribution tests.
 
-Version the baseline beside the code. Record the fixture checksum, reference and annotation releases, tool versions, parameter file, and reviewer. Never update a baseline automatically just to make CI green. Investigate first, document the reason, and review the new expectation.
+Store the baseline beside the code. Record the fixture checksum, references, tool versions, parameters, and reviewer. Never change a baseline only to make CI green. Investigate the difference first.
 
 ## Choose Test Cases, Then Choose When They Run
 
-Different fixtures answer different questions. A useful suite includes more than one happy path.
+A pipeline needs more than one happy-path example. Each case below answers a different question.
 
 | Case | What it proves | Example in a bioinformatics pipeline | When to run |
 |---|---|---|---|
@@ -655,11 +673,11 @@ Different fixtures answer different questions. A useful suite includes more than
 | **compatibility matrix** | supported environments still work | Java, Nextflow, container engine, or platform versions | scheduled or release |
 | **performance** | time, memory, and cost stay acceptable | deep ONT region or cohort-scale input | release and major updates |
 
-Do not create a tiny fixture by blindly taking the first records from a large file. Preserve the feature under test: a splice junction, stranded read, known isoform, low-quality sample, or metadata error.
+Your tiny fixture must still contain the feature you want to test. Keep the splice junction, stranded read, known isoform, low-quality sample, or metadata error. The first few records from a large file may not contain any of them.
 
 ## What The Complete Fast Suite Means
 
-In this project, **complete fast suite** has a precise meaning: every pull-request-safe check that should finish without downloading the multi-gigabyte Week 6 container or running the public-data analysis.
+Here, the **complete fast suite** means every check that is quick enough for a pull request. It does not download the large Week 6 container or run the public dataset.
 
 ```bash
 bash content/resources/week-07/scripts/run_fast_ci.sh
@@ -684,11 +702,13 @@ bash content/resources/week-07/scripts/run_fast_ci.sh sandbox
 bash content/resources/week-07/scripts/run_fast_ci.sh negative
 ```
 
-The full public-data run and scientific regression belong in scheduled or release testing. "Fast suite" does not mean "complete scientific validation."
+Run the public dataset and scientific regression on a schedule or before a release. A fast suite is useful, but it is not complete scientific validation.
 
 ## Automate The Same Test In GitHub Actions And Jenkins
 
-The automation platform should not contain your scientific logic. It should call a versioned repository command. To make the comparison concrete, both examples below run the same small task:
+**Real-life situation:** The tests pass on your laptop, but a teammate forgets to run them before merging. CI removes that manual step.
+
+Keep the test logic in the repository, not inside the automation platform. GitHub Actions and Jenkins should call the same versioned command:
 
 ```bash
 bash content/resources/week-07/scripts/run_fast_ci.sh sandbox
@@ -696,7 +716,7 @@ bash content/resources/week-07/scripts/run_fast_ci.sh sandbox
 
 ### GitHub Actions
 
-GitHub reads YAML files from `.github/workflows/`. An event starts a workflow, a job receives a runner, and steps execute in order.
+GitHub reads YAML files from `.github/workflows/`. A pull request starts the workflow. GitHub creates a temporary runner and executes each step in order.
 
 ```yaml
 name: Tiny FASTQ sandbox
@@ -773,7 +793,7 @@ pipeline {
 }
 ```
 
-The agent labeled `bioinformatics-ci` must already provide Java 17, Nextflow 26.04.2, Bash, and Python 3. For stronger isolation, maintain the agent as a versioned container or machine image instead of installing tools manually on every server.
+The `bioinformatics-ci` agent needs Java 17, Nextflow 26.04.2, Bash, and Python 3. A versioned container or machine image makes that environment easier to reproduce.
 
 The [complete Jenkinsfile](https://github.com/Caffeinated-Code/Bioinformatics_Field_Guide/blob/main/content/resources/week-07/Jenkinsfile) separates versions, lint, nf-test, sandbox, and negative testing into visible stages and publishes the JUnit report.
 
@@ -789,13 +809,13 @@ The [complete Jenkinsfile](https://github.com/Caffeinated-Code/Bioinformatics_Fi
 | test report | uploaded JUnit or annotations | `junit` publisher |
 | secret | Actions secret/environment | Jenkins credential |
 
-Use GitHub Actions when the repository is already on GitHub and hosted runners fit the data policy. Use Jenkins when jobs must reach an internal HPC cluster, private registry, controlled S3 bucket, or established on-premises agent fleet. Jenkins is flexible, but your team owns controller upgrades, plugins, credentials, and agents.
+Use GitHub Actions when the code is on GitHub and the data can run on an approved runner. Use Jenkins when the job must reach an internal HPC cluster, private registry, or controlled network. With Jenkins, your team maintains the server, plugins, credentials, and agents.
 
 Never place protected patient data or production credentials on a public runner. Public CI should use synthetic, public, or explicitly approved fixtures.
 
 ## CI Is Only The First Third
 
-This guide has focused on CI because a release is unsafe when basic tests are unclear. But CI, continuous delivery, and continuous deployment solve different problems.
+CI/CD is often used as one phrase, but it covers three different jobs:
 
 ```mermaid
 flowchart LR
@@ -812,7 +832,7 @@ flowchart LR
 | **continuous delivery** | create a release candidate that is always ready for approval | tag, changelog, test reports, checksums, container digest, SBOM, provenance |
 | **continuous deployment** | automatically promote every passing candidate | deployment history, approved config, rollback target, monitoring |
 
-For a pipeline, "deployment" rarely means publishing a web page. It may mean:
+For a bioinformatics pipeline, deployment may mean:
 
 - publishing a versioned Nextflow release
 - pushing a container image to a registry
@@ -831,11 +851,11 @@ For a pipeline, "deployment" rarely means publishing a web page. It may mean:
 7. An environment approval promotes the **same digest** to production. Do not rebuild it.
 8. The previous approved digest remains available for rollback.
 
-GitHub environments can place required reviewers and protection rules before a deployment job. Jenkins can use an `input` approval step and controlled credentials. In both systems, the production job should receive an immutable version or digest, not an unpinned `latest` tag.
+GitHub environments can require a reviewer before deployment. Jenkins can pause at an `input` approval step. In both systems, deploy the exact version or container digest that was tested. Do not replace it with an unpinned `latest` tag.
 
-**Recommendation:** use continuous delivery for most research and regulated bioinformatics pipelines. Keep deployment controlled when a release can change scientific interpretation, validated behavior, or patient-facing decisions. Fully automatic deployment can still suit low-risk internal tooling when rollback and monitoring are strong.
+**Recommendation:** use continuous delivery for most research and regulated pipelines. Keep a human approval before deployment when a release can change scientific interpretation or patient-facing decisions. Fully automatic deployment is better suited to low-risk internal tools with reliable monitoring and rollback.
 
-This section gives the end-to-end map. Signed containers, SBOM generation, attestations, release approvals, rollback drills, and cloud promotion are substantial enough for a dedicated advanced implementation guide.
+This is the end-to-end map. Signed containers, SBOMs, attestations, rollback drills, and cloud promotion deserve a separate advanced implementation guide.
 
 ## Playbooks Worth Bookmarking
 
