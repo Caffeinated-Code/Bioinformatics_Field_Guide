@@ -1,8 +1,9 @@
-# Week 7: Reliable Bioinformatics Pipeline Testing
+# Weeks 7-8: Reliable Bioinformatics Pipeline Testing And CI/CD
 
-This project teaches seven reusable testing patterns around the custom Week 6
-Nextflow pipeline. The same commands run on a laptop, GitHub Actions, or a
-prepared Jenkins agent.
+This shared project supports both CI/CD articles. Week 7 teaches four local
+testing patterns. Week 8 adds three safeguards, scientific regression,
+GitHub Actions, Jenkins, and controlled releases. The same commands run on a
+laptop or a prepared CI agent.
 
 ## Clone The Required Layout
 
@@ -50,6 +51,7 @@ public Week 6 dataset for real-tool and scientific regression testing.
 
 ```text
 week-07/
+  environment.yml                  # pinned fallback for the local sandbox
   sandbox/main.nf                  # two-process FASTQ QC workflow
   sandbox/data/tiny.fastq          # three synthetic reads
   sandbox/tests/test_qc.py         # six known-answer and invariant tests
@@ -69,6 +71,21 @@ week-07/
 
 Requirements: Nextflow 26.04.2, Java 17, Bash, and Python 3. No Docker or
 biological software is needed.
+
+If those tools are missing or incompatible, create the pinned fallback:
+
+```bash
+conda env create --file content/resources/week-07/environment.yml
+conda activate bioinfo-ci-basics
+
+nextflow -version
+java -version
+bash --version | head -n 1
+python3 --version
+```
+
+The environment contains only the tools needed for the local sandbox. It does
+not install Docker, nf-test, minimap2, IsoQuant, or SQANTI3.
 
 ```bash
 bash content/resources/week-07/scripts/run_sandbox.sh
@@ -117,6 +134,33 @@ The complete fast suite means all checks designed to finish quickly on every
 pull request. It does not run the large containers or public-data analysis.
 
 Requirements: Nextflow 26.04.2, Java 17, nf-test 0.9.3, Bash, and Python 3.
+
+### Install nf-test
+
+Follow the [official nf-test installer](https://www.nf-test.com/installation/)
+and pin the version used by this project:
+
+```bash
+# Keep small command-line tools in a user-owned directory.
+mkdir -p "$HOME/.local/bin"
+cd "$HOME/.local/bin"
+
+# Download the official installer and request nf-test 0.9.3.
+curl -fsSL https://get.nf-test.com | bash -s 0.9.3
+
+# Make this directory available in the current terminal, then verify the tool.
+export PATH="$HOME/.local/bin:$PATH"
+nf-test version
+
+# Return to the repository root before running the suite.
+cd -
+```
+
+The version banner should contain:
+
+```text
+nf-test 0.9.3
+```
 
 ```bash
 bash content/resources/week-07/scripts/run_fast_ci.sh

@@ -1,0 +1,10 @@
+name: bioinfo-ci-basics
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - bash=5.2
+  - openjdk=17
+  - nextflow=26.04.2
+  - python=3.11
